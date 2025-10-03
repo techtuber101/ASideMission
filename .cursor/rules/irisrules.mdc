@@ -1,0 +1,171 @@
+---
+alwaysApply: true
+---
+
+# Iris - Simplified Agentic AI Architecture
+
+## Core Philosophy: "Instant Speed, Zero Lag"
+Build an **ultra-fast, instant-response** agentic AI system with **zero lag** tool execution. Every interaction should feel instantaneous - no waiting, no delays, no complexity.
+
+## Architecture Stack
+
+### Backend
+- **Framework**: FastAPI (Python)
+- **Database**: Supabase (PostgreSQL)
+- **Sandbox Execution**: Daytona
+- **LLM Integration**: Direct API calls (OpenAI/Anthropic)
+- **Authentication**: Supabase Auth
+- **File Storage**: Supabase Storage
+- **Worker**: Dramatiq (Redis) for async tool execution
+- **Containerization**: Docker
+
+### Frontend
+- **Framework**: Next.js 15 + React 18
+- **Styling**: Tailwind CSS
+- **State Management**: Zustand
+- **UI Components**: Radix UI + shadcn/ui
+- **Real-time**: Supabase Realtime
+- **Containerization**: Docker
+
+### Mobile (Optional)
+- **Framework**: React Native + Expo
+- **Navigation**: Expo Router
+- **State Management**: Zustand
+- **Containerization**: Docker (for development)
+
+## Core Components
+
+### 1. Chat Interface
+- Simple, clean chat UI
+- Real-time message streaming
+- File upload support
+- Tool execution visualization
+
+### 2. Message API
+- RESTful API for chat operations
+- Thread management
+- Message persistence
+- Real-time updates
+
+### 3. Instant Tool Execution Engine
+- **Shell Tool**: Instant command execution in Daytona sandbox (sub-100ms)
+- **File Tool**: Instant file read/write operations in sandbox
+- **Web Search Tool**: Instant web search with real-time results
+- **Browser Tool**: Instant website navigation and content extraction
+- **Code Tool**: Instant code execution and result streaming
+- **Computer Tool**: Direct system access for instant operations
+
+### 4. Ultra-Fast LLM Integration
+- **Instant API calls** to OpenAI/Anthropic (no middleware)
+- **Zero-lag streaming** responses
+- **Parallel tool execution** for maximum speed
+- **Smart caching** for instant repeated queries
+- **Direct tool calling** with minimal overhead
+
+### 5. User Management
+- Supabase authentication
+- Simple user profiles
+- Thread ownership
+- Basic usage tracking
+
+## Key Simplifications
+
+### What We're NOT Building
+- ❌ Complex agent builder UI
+- ❌ Marketplace/template system
+- ❌ Team collaboration features
+- ❌ Complex billing system
+- ❌ Agent versioning
+- ❌ Workflow engine
+- ❌ MCP integrations
+- ❌ Composio integrations
+- ❌ Admin dashboards
+- ❌ Complex telemetry
+
+### What We ARE Building
+- ✅ **Instant chat interface** with zero-lag responses
+- ✅ **6 essential tools** with sub-100ms execution
+- ✅ **Direct LLM integration** with instant streaming
+- ✅ **Instant authentication** via Supabase
+- ✅ **Real-time thread persistence**
+- ✅ **Instant file handling** in sandbox
+- ✅ **Instant web search** capabilities
+- ✅ **Instant code execution** with live streaming
+- ✅ **Instant browser automation**
+- ✅ **Instant computer access**
+
+## Performance Goals - INSTANT SPEED
+
+- **Startup Time**: < 2 seconds (ultra-fast)
+- **Response Time**: < 200ms (instant)
+- **Tool Execution**: < 100ms (sub-second)
+- **Memory Usage**: < 200MB (lightweight)
+- **Deployment**: Single command (< 30 seconds)
+- **Setup Time**: < 5 minutes (instant setup)
+- **Streaming Latency**: < 50ms (real-time)
+- **Browser Operations**: < 500ms (instant)
+- **File Operations**: < 50ms (instant)
+- **Web Search**: < 300ms (instant)
+
+## Development Principles - SPEED FIRST
+
+1. **Instant Speed**: Every operation must be sub-second
+2. **Zero Latency**: No delays, no waiting, no lag
+3. **Direct Integration**: Direct API calls, no middleware overhead
+4. **Parallel Execution**: Run tools simultaneously for maximum speed
+5. **Smart Caching**: Cache everything for instant repeated access
+6. **Minimal Dependencies**: Only add what's absolutely necessary for speed
+7. **Real-time Streaming**: Stream everything for instant feedback
+8. **Lightweight Architecture**: Minimal memory footprint for speed
+9. **Fast Iteration**: Optimize for development speed
+10. **Instant Debugging**: Single service for instant troubleshooting
+
+## File Structure
+
+```
+iris/
+├── backend/
+│   ├── main.py              # FastAPI app
+│   ├── models/              # Pydantic models
+│   ├── tools/               # Core tools (5 only)
+│   ├── services/            # Business logic
+│   └── utils/               # Utilities
+├── frontend/
+│   ├── src/
+│   │   ├── app/             # Next.js app router
+│   │   ├── components/      # React components
+│   │   ├── hooks/           # Custom hooks
+│   │   └── lib/             # Utilities
+│   └── public/              # Static assets
+├── mobile/ (optional)
+│   ├── app/                 # Expo router
+│   ├── components/          # React Native components
+│   └── hooks/               # Custom hooks
+└── docs/                    # Documentation
+```
+
+## Success Metrics - INSTANT PERFORMANCE
+
+- **Functionality**: Handle 90% of user requests **instantly**
+- **Performance**: **Sub-200ms** response times (instant)
+- **Tool Speed**: **Sub-100ms** tool execution (instant)
+- **Reliability**: 99.9% uptime with **zero lag**
+- **User Experience**: **Instant feedback** on every action
+- **Maintainability**: Single developer can understand entire codebase
+- **Deployment**: **30-second** deployment (instant)
+- **Development Speed**: **100x faster** than complex alternatives
+- **Streaming**: **Real-time** with <50ms latency
+- **Browser Speed**: **Instant** website navigation
+
+## Technology Choices Rationale - SPEED OPTIMIZED
+
+- **Supabase**: **Instant** database, auth, storage, and real-time in one service
+- **Daytona**: **Ultra-fast** sandbox execution for instant tool safety
+- **FastAPI**: **Lightning-fast** Python web framework with async support
+- **Next.js**: **Instant** full-stack React framework with excellent DX
+- **Tailwind**: **Instant** UI development with zero configuration
+- **Zustand**: **Lightning-fast** state management with minimal overhead
+- **Direct LLM APIs**: **Zero-lag** direct calls to OpenAI/Anthropic
+- **Parallel Processing**: **Simultaneous** tool execution for maximum speed
+
+This architecture prioritizes **INSTANT SPEED, ZERO LAG, and REAL-TIME RESPONSIVENESS** above all else.

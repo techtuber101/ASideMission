@@ -1,0 +1,55 @@
+# Iris Docker Compose - Ultra Fast Multi-Service Setup
+version: '3.8'
+
+services:
+  # Redis for Dramatiq worker
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+  # Backend API + Worker
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - DAYTONA_API_KEY=${DAYTONA_API_KEY}
+    depends_on:
+      - redis
+    volumes:
+      - ./backend:/app
+      - /var/run/docker.sock:/var/run/docker.sock  # For Daytona sandbox
+    command: >
+      sh -c "
+        uvicorn main:app --host 0.0.0.0 --port 8000 --reload &
+        dramatiq workers.main &
+        wait
+      "
+
+  # Frontend - Sleek Dashboard
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_KEY}
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev
+
+volumes:
+  redis_data:
