@@ -26,7 +26,7 @@ export function IrisLogo({ width = 20, height = 20, className = "h-5 w-5" }: Iri
   }
 
   const currentTheme = resolvedTheme || theme;
-  const logoSrc = currentTheme === "dark" ? "/assets/irislogowhite.png" : "/assets/irislogo.png";
+  const logoSrc = currentTheme === "dark" ? "/irislogowhite.png" : "/irislogo.png";
 
   return (
     <Image 
@@ -35,6 +35,9 @@ export function IrisLogo({ width = 20, height = 20, className = "h-5 w-5" }: Iri
       width={width} 
       height={height}
       className={className}
+      quality={100}
+      priority
+      unoptimized
     />
   );
 }

@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { SendIcon, UserIcon, MessageSquareIcon, MonitorIcon } from "lucide-react";
+import { SendIcon, UserIcon, MessageSquareIcon, MonitorIcon, ShareIcon, FileIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ElegantChatInput } from "@/components/elegant-chat-input";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { HistoryModal } from "@/components/history-modal";
 import { ComputerView } from "@/components/computer-view";
 import { IrisLogo } from "@/components/iris-logo";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Message {
   id: string;
@@ -115,26 +116,60 @@ export function IrisChat() {
     <div className="flex h-full flex-col">
       {/* Header */}
       <div className="glass-header">
-        <div className="flex h-16 items-center justify-between px-6">
-          <div className="flex items-center gap-3">
-            <div className="glass-card flex h-10 w-10 items-center justify-center rounded-full">
-              <IrisLogo />
-            </div>
-            <div>
-              <h1 className="text-lg font-medium text-white">Iris</h1>
-              <p className="text-sm text-white/70">AI Assistant</p>
-            </div>
+        <div className="flex h-16 items-center px-6">
+          <div className="flex items-center min-w-0 flex-1">
+            <IrisLogo width={40} height={40} className="h-10 w-auto max-w-none" />
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant={showComputerView ? "default" : "ghost"}
-              size="sm"
-              className="glass-button h-8 px-3 text-white/70 hover:text-white"
-              onClick={() => setShowComputerView(!showComputerView)}
-            >
-              <MonitorIcon className="h-4 w-4 mr-2" />
-              Computer
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="glass-button h-8 w-8 p-0 text-white/70 hover:text-white"
+                    onClick={() => {/* TODO: Implement share functionality */}}
+                  >
+                    <ShareIcon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="glass-card text-white border-white/20 bg-black/80 backdrop-blur-sm">
+                  <p>Share conversation</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="glass-button h-8 w-8 p-0 text-white/70 hover:text-white"
+                    onClick={() => {/* TODO: Implement view files functionality */}}
+                  >
+                    <FileIcon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="glass-card text-white border-white/20 bg-black/80 backdrop-blur-sm">
+                  <p>View files</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={showComputerView ? "default" : "ghost"}
+                    size="sm"
+                    className="glass-button h-8 w-8 p-0 text-white/70 hover:text-white"
+                    onClick={() => setShowComputerView(!showComputerView)}
+                  >
+                    <MonitorIcon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="glass-card text-white border-white/20 bg-black/80 backdrop-blur-sm">
+                  <p>Computer view</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <div className="glass-card flex items-center gap-2 rounded-full px-3 py-1 text-xs">
               <div className="h-2 w-2 rounded-full bg-green-500"></div>
               <span className="text-green-400">Online</span>
@@ -176,11 +211,11 @@ export function IrisChat() {
                     key={message.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`flex gap-4 ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                    className={`flex flex-col gap-2 ${message.role === "user" ? "items-end" : "items-start"}`}
                   >
                     {message.role === "assistant" && (
-                      <div className="glass-card flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-                        <IrisLogo />
+                      <div className="flex items-center">
+                        <IrisLogo width={24} height={24} className="h-6 w-auto max-w-none" />
                       </div>
                     )}
                     <div
@@ -203,10 +238,10 @@ export function IrisChat() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex gap-4 justify-start"
+                    className="flex flex-col gap-2 items-start"
                   >
-                    <div className="glass-card flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-                      <IrisLogo />
+                    <div className="flex items-center">
+                      <IrisLogo width={24} height={24} className="h-6 w-auto max-w-none" />
                     </div>
                     <div className="glass-message px-6 py-4">
                       <div className="flex items-center gap-2">
