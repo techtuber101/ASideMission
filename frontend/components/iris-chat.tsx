@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { SendIcon, UserIcon, MessageSquareIcon, MonitorIcon, ShareIcon, FileIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,26 @@ export function IrisChat() {
     { id: "2", title: "Getting Started", isActive: false },
   ]);
 
+  // Keyboard shortcut for computer view toggle
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Only trigger if Tab is pressed and no modifier keys
+      if (event.key === 'Tab' && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
+        // Check if we're not in an input field
+        const target = event.target as HTMLElement;
+        const isInputField = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true';
+        
+        if (!isInputField) {
+          event.preventDefault();
+          setShowComputerView(prev => !prev);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -46,19 +66,116 @@ export function IrisChat() {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput("");
     setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: `I understand you said: "${userMessage.content}". I'm Iris, your AI assistant. How can I help you today?`,
+    // Create assistant message outside try block for error handling
+    const assistantMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      role: "assistant",
+      content: "",
+    };
+
+    try {
+      // Connect to WebSocket for real-time streaming
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const wsUrl = apiUrl.replace('http', 'ws');
+      const ws = new WebSocket(`${wsUrl}/ws/chat/${activeTab}`);
+
+      // Add empty assistant message that we'll update
+      setMessages(prev => [...prev, assistantMessage]);
+
+      ws.onopen = () => {
+        // Send the user message
+        ws.send(JSON.stringify({ content: currentInput }));
+        
+        // Set a timeout to handle cases where no response is received
+        setTimeout(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.close();
+          }
+        }, 10000); // 10 second timeout
       };
-      setMessages(prev => [...prev, aiMessage]);
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          if (data.type === 'text') {
+            // Update the assistant message with streaming text
+            setMessages(prev => prev.map(msg => 
+              msg.id === assistantMessage.id 
+                ? { ...msg, content: msg.content + data.content }
+                : msg
+            ));
+            // Stop loading when we get the first text response
+            setIsLoading(false);
+          } else if (data.type === 'tool_call') {
+            // Add tool execution indicator
+            const toolMessage: Message = {
+              id: `tool_${Date.now()}`,
+              role: "assistant",
+              content: `🔧 Executing ${data.name}...`,
+            };
+            setMessages(prev => [...prev, toolMessage]);
+          } else if (data.type === 'tool_result') {
+            // Update tool result
+            setMessages(prev => prev.map(msg => 
+              msg.content.includes(`🔧 Executing ${data.name}`)
+                ? { ...msg, content: `✅ ${data.name} completed` }
+                : msg
+            ));
+          } else if (data.type === 'error') {
+            // Handle errors
+            setMessages(prev => prev.map(msg => 
+              msg.id === assistantMessage.id 
+                ? { ...msg, content: `❌ Error: ${data.content}` }
+                : msg
+            ));
+            setIsLoading(false);
+          } else if (data.type === 'ack') {
+            // Just acknowledgment, don't do anything
+            return;
+          }
+        } catch (err) {
+          console.error('Error parsing WebSocket message:', err);
+        }
+      };
+
+      ws.onclose = () => {
+        setIsLoading(false);
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        // Remove the empty assistant message and show error
+        setMessages(prev => prev.filter(msg => msg.id !== assistantMessage.id));
+        
+        // Add error message
+        const errorMessage: Message = {
+          id: `error_${Date.now()}`,
+          role: "assistant",
+          content: `❌ Connection error. Please try again.`,
+        };
+        setMessages(prev => [...prev, errorMessage]);
+        setIsLoading(false);
+      };
+
+    } catch (error) {
+      console.error('Failed to connect to WebSocket:', error);
+      // Remove the empty assistant message
+      setMessages(prev => prev.filter(msg => msg.id !== assistantMessage.id));
+      
+      // Add error message
+      const errorMessage: Message = {
+        id: `error_${Date.now()}`,
+        role: "assistant",
+        content: `❌ Failed to connect. Please try again.`,
+      };
+      setMessages(prev => [...prev, errorMessage]);
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

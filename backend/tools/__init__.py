@@ -48,7 +48,7 @@ class ShellTool(BaseTool):
             "type": "object",
             "properties": {
                 "command": {"type": "string", "description": "Shell command to execute"},
-                "timeout": {"type": "integer", "description": "Timeout in seconds", "default": 30}
+                "timeout": {"type": "integer", "description": "Timeout in seconds"}
             },
             "required": ["command"]
         }
@@ -151,7 +151,7 @@ class WebSearchTool(BaseTool):
             "type": "object",
             "properties": {
                 "query": {"type": "string", "description": "Search query"},
-                "num_results": {"type": "integer", "description": "Number of results", "default": 5}
+                "num_results": {"type": "integer", "description": "Number of results"}
             },
             "required": ["query"]
         }
@@ -256,7 +256,7 @@ class CodeTool(BaseTool):
             "type": "object",
             "properties": {
                 "code": {"type": "string", "description": "Code to execute"},
-                "language": {"type": "string", "description": "Programming language", "default": "python"}
+                "language": {"type": "string", "description": "Programming language"}
             },
             "required": ["code"]
         }

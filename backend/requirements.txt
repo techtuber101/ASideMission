@@ -1,15 +1,17 @@
-# Iris Backend Requirements - Minimal Dependencies for Speed
+# Iris Backend Requirements - Ultra Fast Agentic AI
 fastapi==0.115.12
 uvicorn[standard]==0.27.1
-pydantic==2.10.3
+pydantic>=2.11.7
 supabase==2.17.0
 openai==1.90.0
 anthropic==0.40.0
+google-generativeai==0.8.3
 dramatiq[redis]==1.18.0
 redis==5.2.1
 httpx==0.28.0
 python-dotenv==1.0.1
+websockets==12.0
+python-multipart==0.0.20
 daytona-sdk==0.21.0
 daytona-api-client==0.21.0
 daytona-api-client-async==0.21.0
-python-multipart==0.0.20
