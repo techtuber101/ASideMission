@@ -400,9 +400,15 @@ export function ComputerView({ isOpen, onClose, agentName = "Iris" }: ComputerVi
   if (!isOpen) return null;
 
   return (
-    <div className="glass-sidebar w-96 border-l flex flex-col h-full">
+    <motion.div 
+      initial={{ x: "100%", opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: "100%", opacity: 0 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="w-[40%] bg-white/5 backdrop-blur-xl border border-white/10 flex flex-col z-40 shadow-2xl rounded-2xl"
+    >
       {/* Header */}
-      <div className="glass-header p-4">
+      <div className="glass-header p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="glass-card flex h-10 w-10 items-center justify-center rounded-full">
@@ -433,12 +439,12 @@ export function ComputerView({ isOpen, onClose, agentName = "Iris" }: ComputerVi
       </div>
 
       {/* View Toggle */}
-      <div className="p-4 border-b">
+      <div className="p-6 border-b">
         <ViewToggle currentView={currentView} onViewChange={setCurrentView} />
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden px-6 pb-6">
         {currentView === 'tools' ? renderToolView() : renderBrowserView()}
       </div>
 
@@ -487,6 +493,6 @@ export function ComputerView({ isOpen, onClose, agentName = "Iris" }: ComputerVi
           </div>
                 </div>
       )}
-    </div>
+    </motion.div>
   );
 }

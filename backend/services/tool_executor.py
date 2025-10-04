@@ -23,24 +23,24 @@ class ToolExecutor:
         self.redis_client = None
         self.cache_ttl = int(os.getenv("TOOL_CACHE_TTL", "300"))  # 5 minutes default
         
-        # Tool-specific timeouts (in seconds)
+        # Tool-specific timeouts (in seconds) - P1.5 optimized
         self.tool_timeouts = {
-            "shell": 5,
-            "file": 1,
-            "web_search": 2,
-            "browser": 10,
-            "code": 5,
-            "computer": 1
+            "web_search": 2,  # Tavily search
+            "file": 1,        # Daytona file operations
         }
         
-        # Retry configuration
+        # Retry configuration - P1.5 optimized
         self.max_retries = {
-            "shell": 0,  # Non-idempotent
-            "file": 2,   # Idempotent for read operations
             "web_search": 2,  # Idempotent
-            "browser": 1,  # Semi-idempotent
-            "code": 0,   # Non-idempotent
-            "computer": 2  # Idempotent
+            "file": 2,        # Idempotent for read operations
+        }
+        
+        # Circuit breaker state
+        self.circuit_breakers = {}
+        self.circuit_breaker_config = {
+            "failure_threshold": 5,  # Failures before opening circuit
+            "recovery_timeout": 60,  # Seconds before trying again
+            "success_threshold": 3   # Successes needed to close circuit
         }
         
         # Performance tracking
@@ -89,6 +89,47 @@ class ToolExecutor:
                 del self.execution_cache[cache_key]
         
         return None
+    
+    def _is_circuit_open(self, tool_name: str) -> bool:
+        """Check if circuit breaker is open for a tool"""
+        if tool_name not in self.circuit_breakers:
+            return False
+        
+        breaker = self.circuit_breakers[tool_name]
+        if breaker["state"] == "open":
+            # Check if recovery timeout has passed
+            if time.time() - breaker["last_failure"] > self.circuit_breaker_config["recovery_timeout"]:
+                breaker["state"] = "half_open"
+                breaker["success_count"] = 0
+                return False
+            return True
+        
+        return False
+    
+    def _record_circuit_result(self, tool_name: str, success: bool):
+        """Record result for circuit breaker"""
+        if tool_name not in self.circuit_breakers:
+            self.circuit_breakers[tool_name] = {
+                "state": "closed",
+                "failure_count": 0,
+                "success_count": 0,
+                "last_failure": 0
+            }
+        
+        breaker = self.circuit_breakers[tool_name]
+        
+        if success:
+            breaker["success_count"] += 1
+            breaker["failure_count"] = 0
+            
+            if breaker["state"] == "half_open" and breaker["success_count"] >= self.circuit_breaker_config["success_threshold"]:
+                breaker["state"] = "closed"
+        else:
+            breaker["failure_count"] += 1
+            breaker["last_failure"] = time.time()
+            
+            if breaker["failure_count"] >= self.circuit_breaker_config["failure_threshold"]:
+                breaker["state"] = "open"
     
     async def _cache_result(self, cache_key: str, result: Dict[str, Any]):
         """Cache result in Redis and memory"""
@@ -181,7 +222,17 @@ class ToolExecutor:
         parameters: Dict[str, Any], 
         priority: str = "normal"
     ) -> Dict[str, Any]:
-        """Execute a single tool with retry logic and caching"""
+        """Execute a single tool with retry logic, caching, and circuit breaker"""
+        
+        # Check circuit breaker
+        if self._is_circuit_open(tool_name):
+            return {
+                "success": False,
+                "error": f"Circuit breaker open for {tool_name}",
+                "execution_time_ms": 0,
+                "cached": False,
+                "circuit_open": True
+            }
         
         # Check cache first (for idempotent operations)
         cache_key = self._generate_cache_key(tool_name, parameters)
@@ -210,6 +261,9 @@ class ToolExecutor:
                 result["execution_time_ms"] = round(execution_time, 2)
                 result["cached"] = False
                 
+                # Record success in circuit breaker
+                self._record_circuit_result(tool_name, True)
+                
                 # Cache result if successful and idempotent
                 if result.get("success", True) and max_retries > 0:
                     await self._cache_result(cache_key, result)
@@ -224,6 +278,9 @@ class ToolExecutor:
             except Exception as e:
                 last_exception = e
             
+            # Record failure in circuit breaker
+            self._record_circuit_result(tool_name, False)
+            
             # Wait before retry (exponential backoff)
             if attempt < max_retries:
                 wait_time = 0.1 * (2 ** attempt)
@@ -234,7 +291,8 @@ class ToolExecutor:
             "success": False,
             "error": str(last_exception),
             "execution_time_ms": 0,
-            "cached": False
+            "cached": False,
+            "circuit_open": self._is_circuit_open(tool_name)
         }
     
     def _update_stats(self, tool_name: str, execution_time: float, count: int):
@@ -272,6 +330,7 @@ class ToolExecutor:
             "cache_hits": self.cache_hits,
             "cache_hit_rate": round(cache_hit_rate, 2),
             "tool_stats": self.execution_stats,
+            "circuit_breakers": self.circuit_breakers,
             "cache_ttl": self.cache_ttl,
             "tool_timeouts": self.tool_timeouts,
             "max_retries": self.max_retries

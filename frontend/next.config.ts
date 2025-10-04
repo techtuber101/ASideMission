@@ -8,6 +8,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Fix webpack caching issues
+  webpack: (config, { dev }) => {
+    if (dev) {
+      config.cache = {
+        type: 'filesystem',
+        buildDependencies: {
+          config: [__filename],
+        },
+      };
+    }
+    return config;
+  },
 };
-
-export default nextConfig;

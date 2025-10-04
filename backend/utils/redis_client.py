@@ -359,6 +359,107 @@ class RedisClient:
                 "error": str(e),
                 "timestamp": time.time()
             }
+    
+    async def publish_job_event(self, job_id: str, event_type: str, data: Dict[str, Any]) -> bool:
+        """Publish job event to Redis pubsub for real-time streaming"""
+        try:
+            if not self.client:
+                await self.connect()
+            
+            event_data = {
+                "job_id": job_id,
+                "event_type": event_type,
+                "data": data,
+                "timestamp": time.time()
+            }
+            
+            # Publish to job-specific channel
+            channel = f"job:{job_id}"
+            await self.client.publish(channel, json.dumps(event_data))
+            
+            # Also publish to general job events channel
+            await self.client.publish("job_events", json.dumps(event_data))
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error publishing job event: {e}")
+            return False
+    
+    async def subscribe_to_job_events(self, job_id: str) -> AsyncGenerator[Dict[str, Any], None]:
+        """Subscribe to job events for real-time streaming"""
+        try:
+            if not self.client:
+                await self.connect()
+            
+            pubsub = self.client.pubsub()
+            await pubsub.subscribe(f"job:{job_id}")
+            
+            async for message in pubsub.listen():
+                if message["type"] == "message":
+                    try:
+                        event_data = json.loads(message["data"])
+                        yield event_data
+                    except json.JSONDecodeError:
+                        continue
+            
+        except Exception as e:
+            print(f"Error subscribing to job events: {e}")
+            yield {"error": str(e)}
+
+    async def save_conversation_history(self, thread_id: str, history: List[Dict[str, Any]]) -> bool:
+        """Save conversation history to Redis with context window management"""
+        try:
+            if not self.client:
+                await self.connect()
+
+            # Implement context window management - keep last 50 messages
+            max_messages = 50
+            if len(history) > max_messages:
+                # Keep system instructions + recent messages
+                system_messages = [msg for msg in history if "system" in msg.get("role", "")]
+                recent_messages = history[-max_messages:]
+                history = system_messages + recent_messages
+
+            # Save to Redis with TTL (24 hours)
+            key = f"conversation:{thread_id}"
+            await self.client.setex(key, 86400, json.dumps(history))
+            return True
+
+        except Exception as e:
+            print(f"Error saving conversation history: {e}")
+            return False
+
+    async def get_conversation_history(self, thread_id: str) -> List[Dict[str, Any]]:
+        """Get conversation history from Redis"""
+        try:
+            if not self.client:
+                await self.connect()
+
+            key = f"conversation:{thread_id}"
+            history_data = await self.client.get(key)
+            
+            if history_data:
+                return json.loads(history_data)
+            return []
+
+        except Exception as e:
+            print(f"Error getting conversation history: {e}")
+            return []
+
+    async def clear_conversation_history(self, thread_id: str) -> bool:
+        """Clear conversation history for a thread"""
+        try:
+            if not self.client:
+                await self.connect()
+
+            key = f"conversation:{thread_id}"
+            await self.client.delete(key)
+            return True
+
+        except Exception as e:
+            print(f"Error clearing conversation history: {e}")
+            return False
 
 
 # Global instance for singleton pattern

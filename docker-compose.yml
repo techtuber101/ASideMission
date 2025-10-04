@@ -33,6 +33,12 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - DAYTONA_API_KEY=${DAYTONA_API_KEY}
+      - DAYTONA_WORKSPACE_ID=${DAYTONA_WORKSPACE_ID:-test-workspace-123}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}
+      - WEB_SEARCH_TIMEOUT_MS=${WEB_SEARCH_TIMEOUT_MS:-1500}
+      - SCRAPE_TIMEOUT_MS=${SCRAPE_TIMEOUT_MS:-2000}
+      - DAYTONA_TIMEOUT_MS=${DAYTONA_TIMEOUT_MS:-5000}
     depends_on:
       - redis
     volumes:
@@ -45,21 +51,21 @@ services:
         wait
       "
 
-  # Frontend - Sleek Dashboard
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-      - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
-      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_KEY}
-    depends_on:
-      - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    command: npm run dev
+  # Frontend - Sleek Dashboard (commented out - no Dockerfile)
+  # frontend:
+  #   build: ./frontend
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NEXT_PUBLIC_API_URL=http://localhost:8000
+  #     - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+  #     - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_KEY}
+  #   depends_on:
+  #     - backend
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   command: npm run dev
 
 volumes:
   redis_data:

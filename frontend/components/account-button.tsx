@@ -73,6 +73,7 @@ export function AccountButton({ user }: AccountButtonProps) {
       <DropdownMenuContent 
         className="glass-card w-56" 
         align="end" 
+        alignOffset={16}
         side="top"
         sideOffset={8}
       >

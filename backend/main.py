@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 # Import our services
 from services.gemini_client import get_gemini_client
 from services.tool_executor import get_tool_executor
+from services.orchestrator import get_orchestrator
 from utils.redis_client import get_redis_client, JobStatus
 from tools import get_tool_schemas
 
@@ -30,7 +31,7 @@ app = FastAPI(
 # CORS middleware for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8081"],
+    allow_origins=["http://localhost:3000", "http://localhost:3003", "http://localhost:3004", "http://localhost:8081"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -252,19 +253,18 @@ async def chat_stream(message: Message):
         }
     )
 
-# WebSocket chat endpoint (primary)
+# WebSocket chat endpoint (primary) - P1.5 Instant-or-Agentic
 @app.websocket("/ws/chat/{thread_id}")
 async def websocket_chat(websocket: WebSocket, thread_id: str):
-    """WebSocket chat endpoint for real-time bidirectional communication"""
+    """WebSocket chat endpoint with P1.5 instant-or-agentic orchestration"""
     await manager.connect(websocket, thread_id)
     
     try:
+        orchestrator = get_orchestrator()
         gemini_client = get_gemini_client()
-        tool_executor = get_tool_executor()
-        redis_client = get_redis_client()
         
-        # Get tool schemas
-        tools = get_tool_schemas()
+        # Get conversation history from Redis (placeholder for P1.5)
+        conversation_history = []
         
         while True:
             # Receive user message
@@ -280,42 +280,24 @@ async def websocket_chat(websocket: WebSocket, thread_id: str):
                 "timestamp": time.time()
             })
             
-            # Stream Gemini response
-            async for chunk in gemini_client.chat_with_tools_streaming(
-                message_content, 
-                tools
-            ):
-                if chunk["type"] == "text":
-                    await manager.send_message(thread_id, {
-                        "type": "text",
-                        "content": chunk["content"],
-                        "timestamp": chunk["timestamp"]
-                    })
+            # Process message through orchestrator (instant-or-agentic routing)
+            async for event in orchestrator.process_message(message_content, conversation_history):
+                await manager.send_message(thread_id, event)
                 
-                elif chunk["type"] == "tool_call":
-                    # Execute tool immediately
-                    tool_results = await tool_executor.execute_tools_parallel([chunk])
-                    
-                    await manager.send_message(thread_id, {
-                        "type": "tool_result",
-                        "name": chunk["name"],
-                        "result": tool_results[0]["result"],
-                        "timestamp": chunk["timestamp"]
+                # Update conversation history for next turn
+                if event["type"] == "text":
+                    conversation_history.append({
+                        "role": "assistant",
+                        "content": event["content"],
+                        "timestamp": event["ts"]
                     })
-                
-                elif chunk["type"] == "thinking":
-                    await manager.send_message(thread_id, {
-                        "type": "thinking",
-                        "content": chunk["content"],
-                        "timestamp": chunk["timestamp"]
-                    })
-                
-                elif chunk["type"] == "error":
-                    await manager.send_message(thread_id, {
-                        "type": "error",
-                        "content": chunk["content"],
-                        "timestamp": chunk["timestamp"]
-                    })
+            
+            # Add user message to history
+            conversation_history.append({
+                "role": "user", 
+                "content": message_content,
+                "timestamp": time.time()
+            })
     
     except WebSocketDisconnect:
         manager.disconnect(thread_id)
@@ -333,15 +315,30 @@ async def get_performance_stats():
     """Get system performance statistics"""
     gemini_client = get_gemini_client()
     tool_executor = get_tool_executor()
+    orchestrator = get_orchestrator()
     redis_client = get_redis_client()
     
     return {
         "gemini": gemini_client.get_performance_stats(),
         "tools": tool_executor.get_performance_stats(),
+        "orchestrator": orchestrator.get_stats(),
         "redis": redis_client.get_stats(),
         "websocket_connections": len(manager.active_connections),
         "timestamp": time.time()
     }
+
+# Title generation endpoint
+@app.post("/chat/title")
+async def generate_chat_title(message: Message):
+    """Generate a chat title using Gemini Flash Lite"""
+    try:
+        gemini_client = get_gemini_client()
+        title = await gemini_client.generate_chat_title(message.content)
+        
+        return {"title": title, "thread_id": message.thread_id or "default"}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Thread management endpoints
 @app.get("/threads/{thread_id}/messages")
