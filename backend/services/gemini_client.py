@@ -22,7 +22,19 @@ class GeminiClient:
     
     def __init__(self):
         # Configure Gemini API
-        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if not api_key or api_key == "your-google-api-key-here":
+            self.api_key_configured = False
+            print("⚠️  GOOGLE_API_KEY not configured - Gemini client will return error messages")
+            return
+        
+        try:
+            genai.configure(api_key=api_key)
+            self.api_key_configured = True
+        except Exception as e:
+            print(f"❌ Failed to configure Gemini API: {e}")
+            self.api_key_configured = False
+            return
         
         # Model configuration for maximum speed
         self.model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash-exp")

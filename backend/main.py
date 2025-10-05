@@ -290,6 +290,11 @@ async def websocket_chat(websocket: WebSocket, thread_id: str):
                 from utils.auth_utils import verify_and_authorize_thread_access
                 db = get_db_connection()
                 client = await db.client
+                # Attach user's JWT to PostgREST for RLS evaluation
+                try:
+                    client.postgrest.auth(token)
+                except Exception:
+                    pass
                 await verify_and_authorize_thread_access(client, thread_id, user_id)
                 
             except Exception as e:

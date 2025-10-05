@@ -219,6 +219,11 @@ export function IrisChat({ chatId }: IrisChatProps) {
             method: 'POST',
             headers
           });
+          if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error');
+            console.error('Failed to create thread:', response.status, errorText);
+            throw new Error('Failed to create thread');
+          }
           const data = await response.json();
           currentThreadId = data.thread_id;
           
@@ -848,7 +853,7 @@ export function IrisChat({ chatId }: IrisChatProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="glass-button h-8 w-8 p-0 text-white/70 hover:text-white"
+                    className="glass-button h-9 w-9 p-0 text-white/60 hover:text-white/90 transition-all duration-250"
                     onClick={() => {/* TODO: Implement share functionality */}}
                   >
                     <ShareIcon className="h-4 w-4" />
@@ -864,7 +869,7 @@ export function IrisChat({ chatId }: IrisChatProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="glass-button h-8 w-8 p-0 text-white/70 hover:text-white"
+                    className="glass-button h-9 w-9 p-0 text-white/60 hover:text-white/90 transition-all duration-250"
                     onClick={() => {/* TODO: Implement view files functionality */}}
                   >
                     <FileIcon className="h-4 w-4" />
@@ -880,7 +885,11 @@ export function IrisChat({ chatId }: IrisChatProps) {
                   <Button
                     variant={showComputerView ? "default" : "ghost"}
                     size="sm"
-                    className="glass-button h-8 w-8 p-0 text-white/70 hover:text-white"
+                    className={`glass-button h-9 w-9 p-0 transition-all duration-250 ${
+                      showComputerView 
+                        ? "active text-white/90" 
+                        : "text-white/60 hover:text-white/90"
+                    }`}
                     onClick={() => setShowComputerView(!showComputerView)}
                   >
                     <MonitorIcon className="h-4 w-4" />

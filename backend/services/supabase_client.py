@@ -39,8 +39,15 @@ class DBConnection:
                 
         try:
             supabase_url = os.getenv("SUPABASE_URL")
-            # Use service role key preferentially for backend operations
-            supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_ANON_KEY")
+            # Use service role key preferentially for backend operations, but fall back to anon key if service role is placeholder
+            supabase_service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+            supabase_anon_key = os.getenv("SUPABASE_ANON_KEY")
+            
+            # Use service role key only if it's not a placeholder
+            if supabase_service_key and not supabase_service_key.startswith("your-service-role"):
+                supabase_key = supabase_service_key
+            else:
+                supabase_key = supabase_anon_key
             
             if not supabase_url or not supabase_key:
                 raise RuntimeError("SUPABASE_URL and a key (SERVICE_ROLE_KEY or ANON_KEY) environment variables must be set.")
@@ -54,7 +61,7 @@ class DBConnection:
             )
             
             self._initialized = True
-            key_type = "SERVICE_ROLE_KEY" if os.getenv("SUPABASE_SERVICE_ROLE_KEY") else "ANON_KEY"
+            key_type = "SERVICE_ROLE_KEY" if (supabase_service_key and not supabase_service_key.startswith("your-service-role")) else "ANON_KEY"
             print(f"Database connection initialized with Supabase using {key_type}")
             
         except Exception as e:

@@ -30,6 +30,7 @@ class SyncChatRequest(BaseModel):
 
 @router.get("/threads")
 async def get_user_threads(
+    request: Request,
     user_id: str = Depends(verify_and_get_user_id_from_jwt),
     page: Optional[int] = Query(1, ge=1, description="Page number (1-based)"),
     limit: Optional[int] = Query(1000, ge=1, le=1000, description="Number of items per page (max 1000)")
@@ -38,6 +39,13 @@ async def get_user_threads(
     print(f"Fetching threads for user: {user_id} (page={page}, limit={limit})")
     db = get_db_connection()
     client = await db.client
+    # Use user's JWT for RLS-authenticated queries if available
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        try:
+            client.postgrest.auth(auth_header.split(" ", 1)[1])
+        except Exception:
+            pass
     
     try:
         offset = (page - 1) * limit
@@ -129,12 +137,20 @@ async def get_user_threads(
 @router.get("/threads/{thread_id}")
 async def get_thread(
     thread_id: str,
+    request: Request,
     user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ):
     """Get a specific thread by ID with complete related data."""
     print(f"Fetching thread: {thread_id}")
     db = get_db_connection()
     client = await db.client
+    # Use user's JWT for RLS-authenticated queries if available
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        try:
+            client.postgrest.auth(auth_header.split(" ", 1)[1])
+        except Exception:
+            pass
     
     try:
         # Verify user has access to thread
@@ -219,6 +235,13 @@ async def create_thread(
     
     db = get_db_connection()
     client = await db.client
+    # Use user's JWT for RLS-authenticated queries if available
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        try:
+            client.postgrest.auth(auth_header.split(" ", 1)[1])
+        except Exception:
+            pass
     
     try:
         if user_id:
@@ -265,6 +288,7 @@ async def create_thread(
 @router.get("/threads/{thread_id}/messages")
 async def get_thread_messages(
     thread_id: str,
+    request: Request,
     user_id: str = Depends(verify_and_get_user_id_from_jwt),
     order: str = Query("desc", description="Order by created_at: 'asc' or 'desc'")
 ):
@@ -272,6 +296,13 @@ async def get_thread_messages(
     print(f"Fetching all messages for thread: {thread_id}, order={order}")
     db = get_db_connection()
     client = await db.client
+    # Use user's JWT for RLS-authenticated queries if available
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        try:
+            client.postgrest.auth(auth_header.split(" ", 1)[1])
+        except Exception:
+            pass
     await verify_and_authorize_thread_access(client, thread_id, user_id)
     
     try:
@@ -298,12 +329,20 @@ async def get_thread_messages(
 async def create_message(
     thread_id: str,
     message_data: MessageCreateRequest,
+    request: Request,
     user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ):
     """Create a new message in a thread."""
     print(f"Creating message in thread: {thread_id}")
     db = get_db_connection()
     client = await db.client
+    # Use user's JWT for RLS-authenticated queries if available
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        try:
+            client.postgrest.auth(auth_header.split(" ", 1)[1])
+        except Exception:
+            pass
     
     try:
         await verify_and_authorize_thread_access(client, thread_id, user_id)
@@ -339,12 +378,20 @@ async def create_message(
 @router.post("/threads/sync")
 async def sync_local_chats(
     sync_data: SyncChatRequest,
+    request: Request,
     user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ):
     """Sync local chats to cloud storage."""
     print(f"Syncing {len(sync_data.messages)} messages for user: {user_id}")
     db = get_db_connection()
     client = await db.client
+    # Use user's JWT for RLS-authenticated queries if available
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        try:
+            client.postgrest.auth(auth_header.split(" ", 1)[1])
+        except Exception:
+            pass
     account_id = user_id
     
     try:

@@ -45,10 +45,10 @@ export function BottomNavigation({
             <motion.div
               key={tab.id}
               className={cn(
-                "flex items-center gap-2 px-3 py-2 text-sm cursor-pointer transition-colors min-w-0 max-w-48 flex-shrink-0 rounded-lg border",
+                "glass-button flex items-center gap-2 px-3 py-2 text-sm cursor-pointer transition-all duration-250 min-w-0 max-w-48 flex-shrink-0",
                 tab.isActive
-                  ? "bg-primary/10 text-primary border-primary/40"
-                  : "bg-card hover:bg-muted text-muted-foreground hover:text-foreground border-border"
+                  ? "active text-white/90"
+                  : "text-white/60 hover:text-white/90"
               )}
               title={tab.title}
               onClick={() => {
@@ -59,7 +59,7 @@ export function BottomNavigation({
               whileTap={{ scale: 0.98 }}
             >
               <MessageSquareIcon className={cn("h-4 w-4 flex-shrink-0",
-                tab.isActive ? "text-primary" : "text-muted-foreground"
+                tab.isActive ? "text-white/90" : "text-white/50"
               )} />
               <span className="truncate">{tab.title}</span>
               <Button
@@ -80,7 +80,7 @@ export function BottomNavigation({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 flex-shrink-0 rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="glass-button h-8 w-8 flex-shrink-0 text-white/60 hover:text-white/90 transition-all duration-250"
             onClick={onNewTab}
           >
             <Plus className="h-4 w-4" />
@@ -93,7 +93,7 @@ export function BottomNavigation({
         <Button
           variant="ghost"
           size="icon"
-          className="h-10 w-10 rounded-full border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground"
+          className="glass-button h-10 w-10 rounded-full text-white/60 hover:text-white/90 transition-all duration-250"
           onClick={onHistoryClick}
         >
           <HistoryIcon className="h-5 w-5" />
