@@ -43,7 +43,7 @@ async def get_user_threads(
         offset = (page - 1) * limit
         
         # Get threads for the user
-        threads_result = await client.table('threads').select('*').eq('account_id', user_id).order('created_at', desc=True).execute()
+        threads_result = await client.table('threads').select('*').eq('user_id', user_id).order('created_at', desc=True).execute()
         
         if not threads_result.data:
             print(f"No threads found for user: {user_id}")
@@ -193,62 +193,69 @@ async def get_thread(
 
 @router.post("/threads", response_model=CreateThreadResponse)
 async def create_thread(
-    name: Optional[str] = Form(None),
-    request: Request = None
+    request: Request,
+    name: Optional[str] = Form(None)
 ):
     """Create a new thread."""
     if not name:
         name = "New Chat"
-    print(f"Creating new thread with name: {name}")
+    print(f"🚀 Creating new thread with name: {name}")
+    print(f"🔍 Request headers: {dict(request.headers)}")
+    print(f"🔍 Request method: {request.method}")
+    print(f"🔍 Request URL: {request.url}")
     
     # Check for authentication (optional)
     user_id = None
     try:
-        if request and request.headers.get("Authorization"):
+        if request.headers.get("Authorization"):
+            print(f"🔐 Found Authorization header")
             user_id = await verify_and_get_user_id_from_jwt(request)
             print(f"🔐 Creating authenticated thread for user: {user_id}")
         else:
-            print(f"🔓 Creating anonymous thread")
+            print(f"🔓 No Authorization header, creating anonymous thread")
     except Exception as e:
         print(f"🔓 Authentication failed, creating anonymous thread: {e}")
         user_id = None
     
     db = get_db_connection()
     client = await db.client
-    account_id = user_id  # In Basejump, personal account_id is the same as user_id
     
     try:
-        if account_id:
+        if user_id:
             # Authenticated user - create project and thread in database
             project_name = name or "New Chat"
+            print(f"📁 Creating project: {project_name} for user: {user_id}")
+            
             project = await client.table('projects').insert({
                 "project_id": str(uuid.uuid4()), 
-                "account_id": account_id, 
+                "user_id": user_id, 
                 "name": project_name,
                 "created_at": datetime.now(timezone.utc).isoformat()
             }).execute()
             project_id = project.data[0]['project_id']
-            print(f"Created new project: {project_id}")
+            print(f"✅ Created project: {project_id}")
 
             # 2. Create Thread
             thread_data = {
                 "thread_id": str(uuid.uuid4()), 
                 "project_id": project_id, 
-                "account_id": account_id,
+                "user_id": user_id,
+                "title": project_name,
                 "metadata": {"title": project_name},
                 "created_at": datetime.now(timezone.utc).isoformat()
             }
             
+            print(f"🧵 Creating thread with data: {thread_data}")
             thread = await client.table('threads').insert(thread_data).execute()
             thread_id = thread.data[0]['thread_id']
-            print(f"Created new thread: {thread_id}")
+            print(f"✅ Created thread: {thread_id}")
 
-            print(f"Successfully created authenticated thread {thread_id} with project {project_id}")
+            print(f"🎉 Successfully created authenticated thread {thread_id} with project {project_id}")
             return {"thread_id": thread_id, "project_id": project_id}
         else:
             # Anonymous user - just return a thread ID without database storage
             thread_id = str(uuid.uuid4())
-            print(f"Created anonymous thread: {thread_id}")
+            print(f"🔓 Created anonymous thread: {thread_id}")
             return {"thread_id": thread_id, "project_id": None}
 
     except Exception as e:
@@ -345,7 +352,7 @@ async def sync_local_chats(
         project_name = sync_data.title or "Synced Chat"
         project = await client.table('projects').insert({
             "project_id": str(uuid.uuid4()), 
-            "account_id": account_id, 
+            "user_id": account_id, 
             "name": project_name,
             "created_at": datetime.now(timezone.utc).isoformat()
         }).execute()
@@ -356,7 +363,7 @@ async def sync_local_chats(
         thread_data = {
             "thread_id": str(uuid.uuid4()), 
             "project_id": project_id, 
-            "account_id": account_id,
+            "user_id": account_id,
             "metadata": {"title": project_name, "synced_from_local": True},
             "created_at": datetime.now(timezone.utc).isoformat()
         }

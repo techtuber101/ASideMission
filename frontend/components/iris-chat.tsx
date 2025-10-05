@@ -13,6 +13,7 @@ import { IrisLogo } from "@/components/iris-logo";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 interface Message {
   id: string;
@@ -45,11 +46,17 @@ interface ToolCallViewModel {
 
 // Removed Phase interface - no longer using phases
 
-export function IrisChat() {
+interface IrisChatProps {
+  chatId?: string;
+}
+
+export function IrisChat({ chatId }: IrisChatProps) {
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [ws, setWs] = useState<WebSocket | null>(null);
+  // WebSocket connection ref for cleanup
+  const websocketRef = useRef<WebSocket | null>(null);
   const [showComputerView, setShowComputerView] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showFileUpload, setShowFileUpload] = useState(false);
@@ -175,31 +182,51 @@ export function IrisChat() {
 
   useEffect(() => {
     console.log("🔄 Initializing WebSocket connection...");
+    console.log("🔄 useEffect running, websocketRef.current:", websocketRef.current);
     const initializeConnection = async () => {
       try {
         // Close any existing WebSocket connection
-        if (ws) {
+        if (websocketRef.current) {
           console.log("🔌 Closing existing WebSocket connection");
-          ws.close();
-          setWs(null);
+          websocketRef.current.close();
+          websocketRef.current = null;
         }
         
         // Get authentication token from Supabase (optional)
         const { data: { session } } = await supabase.auth.getSession();
         const authToken = session?.access_token;
         
-        // Create a new thread (with or without auth)
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (authToken) {
-          headers['Authorization'] = `Bearer ${authToken}`;
+        // If no chatId provided, don't create a WebSocket connection
+        // This is the main page showing the welcome interface
+        if (!chatId) {
+          console.log("🏠 Main page - no WebSocket connection needed");
+          return;
         }
         
-        const response = await fetch(`${apiUrl}/threads`, {
-          method: 'POST',
-          headers
-        });
-        const data = await response.json();
-        const newThreadId = data.thread_id;
+        let currentThreadId = chatId;
+        
+        // If chatId is "new", create a new thread
+        if (currentThreadId === "new") {
+          console.log("🆔 Creating new thread...");
+          
+          // Create a new thread (with or without auth)
+          const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+          if (authToken) {
+            headers['Authorization'] = `Bearer ${authToken}`;
+          }
+          
+          const response = await fetch(`${apiUrl}/api/threads`, {
+            method: 'POST',
+            headers
+          });
+          const data = await response.json();
+          currentThreadId = data.thread_id;
+          
+          // Update URL to reflect the new thread
+          router.push(`/chat/${currentThreadId}`);
+        }
+        
+        const newThreadId = currentThreadId;
         
         console.log("🔗 Creating WebSocket connection for thread:", newThreadId);
         
@@ -211,7 +238,7 @@ export function IrisChat() {
         
         websocket.onopen = () => {
           console.log("✅ WebSocket connected to thread:", newThreadId);
-          setWs(websocket);
+          websocketRef.current = websocket;
         };
 
         websocket.onmessage = (event) => {
@@ -416,7 +443,7 @@ export function IrisChat() {
 
         websocket.onclose = () => {
           console.log("WebSocket disconnected");
-          setWs(null);
+          websocketRef.current = null;
         };
 
         websocket.onerror = (error) => {
@@ -434,29 +461,161 @@ export function IrisChat() {
     return () => {
       console.log("🧹 Component unmounting, cleaning up...");
       
-      // Clear throttling timeout
-      if (throttleRef.current) {
-        clearTimeout(throttleRef.current);
-        throttleRef.current = null;
+      // Close WebSocket connection
+      if (websocketRef.current) {
+        websocketRef.current.close();
+        websocketRef.current = null;
       }
       
-      // Clear finalize timeout
-      if (finalizeTimeoutRef.current) {
-        clearTimeout(finalizeTimeoutRef.current);
-        finalizeTimeoutRef.current = null;
-      }
-      
-      // Flush any pending text
-      if (pendingTextRef.current) {
-        flushPendingText();
-      }
+      console.log("✅ Cleanup completed");
     };
-  }, []);
+  }, [chatId]); // Include chatId in dependency array
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const handleNewChat = () => {
+    router.push('/chat/new');
+  };
+
+  const initializeWebSocketConnection = async (threadId: string, authToken?: string, initialMessage?: string) => {
+    try {
+      // Close any existing WebSocket connection
+      if (websocketRef.current) {
+        console.log("🔌 Closing existing WebSocket connection");
+        websocketRef.current.close();
+        websocketRef.current = null;
+      }
+
+      console.log("🔗 Creating WebSocket connection for thread:", threadId);
+      
+      // Connect WebSocket with thread ID and optional auth token
+      const wsUrlWithAuth = authToken 
+        ? `${wsUrl}/ws/chat/${threadId}?token=${authToken}`
+        : `${wsUrl}/ws/chat/${threadId}`;
+      const websocket = new WebSocket(wsUrlWithAuth);
+      
+      websocket.onopen = () => {
+        console.log("✅ WebSocket connected to thread:", threadId);
+        websocketRef.current = websocket;
+        
+        // Send the message that triggered this connection
+        const messageData = {
+          type: "message",
+          content: initialMessage || messages[messages.length - 1]?.content || "",
+          conversation_history: messages.slice(0, -1) // Exclude the last message since we're sending it
+        };
+        console.log("📤 Sending initial message:", messageData);
+        console.log("📤 initialMessage:", initialMessage);
+        console.log("📤 messages array:", messages);
+        console.log("📤 last message:", messages[messages.length - 1]);
+        websocket.send(JSON.stringify(messageData));
+      };
+
+      websocket.onmessage = (event) => {
+        try {
+          console.log("🔍 Raw WebSocket data:", event.data);
+          console.log("🔍 Data type:", typeof event.data);
+          console.log("🔍 Data length:", event.data.length);
+          
+          const data = JSON.parse(event.data);
+          console.log("📥 Parsed WebSocket data:", data);
+          
+          if (data.type === "text") {
+            console.log("📝 Received text token:", data.content);
+
+            if (!hasReceivedResponse) {
+              setHasReceivedResponse(true);
+              setIsLoading(false); // Hide thinking indicator
+              setIsStreaming(true); // Start streaming mode
+
+              // Create initial assistant message if the last message is not an assistant message
+              setMessages(prev => {
+                const lastMessage = prev[prev.length - 1];
+                if (!lastMessage || lastMessage.role === "user") {
+                  const initialMessage: Message = {
+                    id: generateUniqueId('assistant'),
+                    role: "assistant",
+                    content: "",
+                    timestamp: Date.now()
+                  };
+                  return [...prev, initialMessage];
+                }
+                return prev;
+              });
+            }
+
+            // Update the content of the last assistant message
+            setMessages(prev => {
+              const newMessages = [...prev];
+              let lastAssistantMessageIndex = -1;
+              for (let i = newMessages.length - 1; i >= 0; i--) {
+                if (newMessages[i].role === "assistant") {
+                  lastAssistantMessageIndex = i;
+                  break;
+                }
+              }
+
+              if (lastAssistantMessageIndex !== -1) {
+                newMessages[lastAssistantMessageIndex] = {
+                  ...newMessages[lastAssistantMessageIndex],
+                  content: newMessages[lastAssistantMessageIndex].content + data.content
+                };
+              }
+              return newMessages;
+            });
+
+            // Clear existing finalize timeout
+            if (finalizeTimeoutRef.current) {
+              clearTimeout(finalizeTimeoutRef.current);
+            }
+
+            // Set new timeout to finalize message (200ms after last token)
+            finalizeTimeoutRef.current = setTimeout(() => {
+              setIsStreaming(false);
+              finalizeTimeoutRef.current = null;
+            }, 200);
+
+          } else if (data.type === "deliver") {
+            setDeliveredArtifacts(data.artifacts || []);
+
+            // Add system message for delivery
+            const deliverMessage: Message = {
+              id: generateUniqueId('deliver'),
+              role: "system",
+              content: `📦 Delivered ${data.artifacts?.length || 0} file(s): ${data.summary || 'Files created'}`,
+              timestamp: Date.now()
+            };
+            addMessageSafely(deliverMessage);
+            setIsStreaming(false); // Ensure streaming is off after delivery
+          } else if (data.type === "end") {
+            console.log("🏁 Received end signal");
+            setIsStreaming(false);
+            if (finalizeTimeoutRef.current) {
+              clearTimeout(finalizeTimeoutRef.current);
+              finalizeTimeoutRef.current = null;
+            }
+          }
+        } catch (error) {
+          console.error("❌ Error parsing WebSocket message:", error);
+        }
+      };
+
+      websocket.onclose = () => {
+        console.log("WebSocket disconnected");
+        websocketRef.current = null;
+      };
+
+      websocket.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
+
+    } catch (error) {
+      console.error("Failed to initialize WebSocket connection:", error);
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -480,27 +639,63 @@ export function IrisChat() {
       finalizeTimeoutRef.current = null;
     }
 
+    // If we're on the main page (no chatId), create a thread in the background
+    if (!chatId) {
+      console.log("🏠 Main page - creating thread for first message");
+      
+      try {
+        // Get authentication token from Supabase (optional)
+        const { data: { session } } = await supabase.auth.getSession();
+        const authToken = session?.access_token;
+        
+        // Create a new thread (with or without auth)
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (authToken) {
+          headers['Authorization'] = `Bearer ${authToken}`;
+        }
+        
+        const response = await fetch(`${apiUrl}/api/threads`, {
+          method: 'POST',
+          headers
+        });
+        const data = await response.json();
+        const newThreadId = data.thread_id;
+        
+        // Update URL in background without reloading
+        window.history.replaceState(null, '', `/chat/${newThreadId}`);
+        
+        // Continue with WebSocket connection setup
+        console.log("🚀 About to initialize WebSocket with message:", userMessage.content);
+        await initializeWebSocketConnection(newThreadId, authToken, userMessage.content);
+        
+        // The WebSocket connection will automatically send the message when it opens
+      } catch (error) {
+        console.error("❌ Failed to create thread:", error);
+        setIsLoading(false);
+        return;
+      }
+    } else {
+      // We already have a thread, just send the message
+      if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
+        console.log("📤 Sending message:", userMessage.content);
+        console.log("📤 WebSocket state:", websocketRef.current.readyState);
+        
+        const messageData = {
+          type: "message",
+          content: userMessage.content,
+          conversation_history: messages
+        };
+        console.log("📤 Sending data:", messageData);
+        websocketRef.current.send(JSON.stringify(messageData));
+      }
+    }
+
     // Generate title for first message (non-blocking)
     if (messages.length === 0) {
       generateTitle(userMessage.content).catch(() => {
         // Ignore title generation errors
       });
     }
-
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      console.log("📤 Sending message:", userMessage.content);
-      console.log("📤 WebSocket state:", ws.readyState);
-      
-      const messageData = {
-        type: "message",
-        content: userMessage.content,
-        conversation_history: messages
-      };
-      console.log("📤 Sending data:", messageData);
-      ws.send(JSON.stringify(messageData));
-    }
-
-    // Remove the fixed timeout - we'll hide loading when we actually get a response
   };
 
   const generateTitle = async (firstMessage: string) => {
@@ -510,7 +705,7 @@ export function IrisChat() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: firstMessage }),
+        body: JSON.stringify({ content: firstMessage }),
       });
 
       if (!response.ok) {
@@ -537,8 +732,8 @@ export function IrisChat() {
     try {
       // Send each file via WebSocket
       for (const file of files) {
-        if (ws && file.content) {
-          ws.send(JSON.stringify({
+        if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN && file.content) {
+          websocketRef.current.send(JSON.stringify({
             type: "file_upload",
             file_name: file.name,
             file_content: file.content,
@@ -555,8 +750,8 @@ export function IrisChat() {
   const handleFileDownload = async (filePath: string) => {
     try {
       // Send download request via WebSocket
-      if (ws) {
-        ws.send(JSON.stringify({
+      if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
+        websocketRef.current.send(JSON.stringify({
           type: "file_download",
           file_path: filePath
         }));
@@ -569,8 +764,8 @@ export function IrisChat() {
   const handleListFiles = async () => {
     try {
       // Send list files request via WebSocket
-      if (ws) {
-        ws.send(JSON.stringify({
+      if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
+        websocketRef.current.send(JSON.stringify({
           type: "list_files",
           folder_path: "/workspace"
         }));
@@ -630,25 +825,7 @@ export function IrisChat() {
   };
 
   const handleNewTab = () => {
-    const newTabId = (Date.now() + Math.random()).toString();
-    const newTab = { id: newTabId, title: "New Chat", isActive: true };
-    
-    setTabs(prev => prev.map(tab => ({ ...tab, isActive: false })));
-    setTabs(prev => [...prev, newTab]);
-    setCurrentTabId(newTabId);
-    setMessages([]);
-    setActiveToolCalls(new Map());
-    setToolCalls([]);
-    setDeliveredArtifacts([]);
-    setHasReceivedResponse(false);
-    setStreamingTextContent("");
-    setIsStreaming(false);
-    
-    // Clear any pending timeouts
-    if (finalizeTimeoutRef.current) {
-      clearTimeout(finalizeTimeoutRef.current);
-      finalizeTimeoutRef.current = null;
-    }
+    router.push('/chat/new');
   };
 
   const handleHistorySelect = (chatId: string) => {
@@ -725,7 +902,7 @@ export function IrisChat() {
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Chat Messages Container */}
-        <div className={`flex flex-col transition-all duration-300 ${showComputerView ? 'w-[60%]' : 'w-full'}`}>
+        <div className="flex flex-col flex-1 min-w-0">
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto">
             {messages.length === 0 ? (

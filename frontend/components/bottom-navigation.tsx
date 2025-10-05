@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AccountButton } from "@/components/account-button";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 interface ChatTab {
   id: string;
@@ -29,8 +30,9 @@ export function BottomNavigation({
   onNewTab, 
   onHistoryClick 
 }: BottomNavigationProps) {
+  const router = useRouter();
   return (
-    <div className="glass-header flex items-center justify-between px-4 py-3">
+    <div className="flex items-center justify-between px-4 py-3 backdrop-blur-sm bg-background/30">
       {/* Left: Avatar */}
       <div className="flex-shrink-0">
         <AccountButton />
@@ -38,26 +40,32 @@ export function BottomNavigation({
 
       {/* Center: Scrollable Chat Tabs */}
       <div className="flex-1 mx-4 overflow-hidden">
-        <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
           {tabs.map((tab) => (
             <motion.div
               key={tab.id}
               className={cn(
-                "glass-button flex items-center gap-2 px-3 py-2 text-sm cursor-pointer transition-all duration-200 min-w-0 max-w-48 flex-shrink-0",
+                "flex items-center gap-2 px-3 py-2 text-sm cursor-pointer transition-colors min-w-0 max-w-48 flex-shrink-0 rounded-lg border",
                 tab.isActive
-                  ? "bg-white/10 text-white ring-white/20"
-                  : "hover:bg-white/5 text-white/70 hover:text-white"
+                  ? "bg-primary/10 text-primary border-primary/40"
+                  : "bg-card hover:bg-muted text-muted-foreground hover:text-foreground border-border"
               )}
-              onClick={() => onTabClick(tab.id)}
+              title={tab.title}
+              onClick={() => {
+                onTabClick(tab.id);
+                router.push(`/chat/${tab.id}`);
+              }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <MessageSquareIcon className="h-3 w-3 flex-shrink-0" />
+              <MessageSquareIcon className={cn("h-4 w-4 flex-shrink-0",
+                tab.isActive ? "text-primary" : "text-muted-foreground"
+              )} />
               <span className="truncate">{tab.title}</span>
               <Button
                 variant="ghost"
                 size="icon"
-                className="glass-button h-4 w-4 hover:bg-destructive/20 hover:text-destructive flex-shrink-0"
+                className="h-5 w-5 hover:bg-destructive/10 hover:text-destructive flex-shrink-0"
                 onClick={(e) => {
                   e.stopPropagation();
                   onTabClose(tab.id);
@@ -72,7 +80,7 @@ export function BottomNavigation({
           <Button
             variant="ghost"
             size="icon"
-            className="glass-button h-8 w-8 hover:bg-white/10 hover:text-white flex-shrink-0 text-white/70"
+            className="h-8 w-8 flex-shrink-0 rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
             onClick={onNewTab}
           >
             <Plus className="h-4 w-4" />
@@ -85,7 +93,7 @@ export function BottomNavigation({
         <Button
           variant="ghost"
           size="icon"
-          className="glass-button h-10 w-10 rounded-full hover:bg-white/10 hover:text-white text-white/70"
+          className="h-10 w-10 rounded-full border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground"
           onClick={onHistoryClick}
         >
           <HistoryIcon className="h-5 w-5" />

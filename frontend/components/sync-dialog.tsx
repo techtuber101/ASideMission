@@ -241,3 +241,4 @@ export function SyncDialog({ isOpen, onClose, onComplete }: SyncDialogProps) {
     </AnimatePresence>
   );
 }
+

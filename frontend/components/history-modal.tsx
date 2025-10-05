@@ -96,7 +96,7 @@ export function HistoryModal({ isOpen, onClose, onSelectChat }: HistoryModalProp
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm"
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
           onClick={onClose}
         >
           <motion.div
@@ -107,11 +107,11 @@ export function HistoryModal({ isOpen, onClose, onSelectChat }: HistoryModalProp
             className="absolute inset-4 mx-auto max-w-4xl h-[80vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="h-full glass-card border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
+            <div className="h-full glass-alt-surface rounded-3xl overflow-hidden">
               {/* Header */}
-              <div className="glass-header flex items-center justify-between p-6">
+              <div className="glass-alt-header flex items-center justify-between p-6">
                 <div className="flex items-center gap-3">
-                  <div className="glass-card flex h-12 w-12 items-center justify-center rounded-full">
+                  <div className="glass-alt-chip flex h-12 w-12 items-center justify-center rounded-full">
                     <HistoryIcon className="h-6 w-6 text-primary" />
                   </div>
                   <div>
@@ -122,7 +122,7 @@ export function HistoryModal({ isOpen, onClose, onSelectChat }: HistoryModalProp
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="glass-button h-10 w-10 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                  className="glass-alt-chip h-10 w-10 rounded-full hover:bg-destructive/10 hover:text-destructive"
                   onClick={onClose}
                 >
                   <X className="h-5 w-5" />
@@ -130,7 +130,7 @@ export function HistoryModal({ isOpen, onClose, onSelectChat }: HistoryModalProp
               </div>
 
               {/* Search and Filters */}
-              <div className="glass-header p-6">
+              <div className="glass-alt-header p-6">
                 <div className="flex items-center gap-4">
                   <div className="relative flex-1">
                     <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -138,13 +138,13 @@ export function HistoryModal({ isOpen, onClose, onSelectChat }: HistoryModalProp
                       placeholder="Search conversations..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 glass-input focus:border-primary/50"
+                      className="pl-10 glass-alt-chip focus:border-primary/50"
                     />
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="glass-button hover:bg-primary/10"
+                    className="glass-alt-chip hover:bg-primary/10"
                   >
                     <FilterIcon className="h-4 w-4 mr-2" />
                     Filter
@@ -161,11 +161,11 @@ export function HistoryModal({ isOpen, onClose, onSelectChat }: HistoryModalProp
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="group cursor-pointer glass-card rounded-xl p-4 hover:bg-primary/5 hover:border-primary/20 transition-all duration-200"
+                      className="group cursor-pointer glass-alt-item rounded-xl p-4 hover:border-primary/20 transition-all duration-200"
                       onClick={() => handleChatSelect(chat.id)}
                     >
                       <div className="flex items-start gap-3">
-                        <div className="glass-card flex h-10 w-10 items-center justify-center rounded-lg group-hover:bg-primary/10 transition-colors">
+                        <div className="glass-alt-chip flex h-10 w-10 items-center justify-center rounded-lg group-hover:bg-primary/10 transition-colors">
                           <MessageSquareIcon className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">

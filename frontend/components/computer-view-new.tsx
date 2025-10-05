@@ -495,3 +495,4 @@ export function ComputerView({ toolCalls, isVisible, onToggle }: ComputerViewPro
     </motion.div>
   );
 }
+

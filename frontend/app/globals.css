@@ -275,6 +275,60 @@
     -webkit-backdrop-filter: blur(16px);
     box-shadow: 0 10px 20px -10px rgba(0,0,0,0.6);
   }
+
+  /* Alternative, sleeker glass set for history modal only */
+  .glass-alt-surface {
+    position: relative;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(180,200,255,0.14);
+    background: linear-gradient(
+      180deg,
+      rgba(20,26,40,0.65),
+      rgba(14,18,30,0.55)
+    );
+    backdrop-filter: blur(24px) saturate(120%);
+    -webkit-backdrop-filter: blur(24px) saturate(120%);
+    box-shadow: 0 16px 40px -12px rgba(0,0,0,0.65), inset 0 1px 0 0 rgba(200,220,255,0.06);
+  }
+
+  .glass-alt-item {
+    border-radius: 1rem;
+    border: 1px solid rgba(180,200,255,0.14);
+    background: linear-gradient(
+      180deg,
+      rgba(20,26,40,0.55),
+      rgba(14,18,30,0.45)
+    );
+    backdrop-filter: blur(22px) saturate(120%);
+    -webkit-backdrop-filter: blur(22px) saturate(120%);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .glass-alt-item:hover {
+    transform: translateY(-1px);
+    border-color: rgba(160,200,255,0.28);
+    background: linear-gradient(
+      180deg,
+      rgba(26,34,52,0.60),
+      rgba(16,20,34,0.52)
+    );
+    box-shadow: 0 18px 42px -14px rgba(0,0,0,0.65);
+  }
+
+  .glass-alt-chip {
+    border-radius: 0.75rem;
+    border: 1px solid rgba(180,200,255,0.14);
+    background: rgba(18,22,36,0.5);
+    backdrop-filter: blur(18px) saturate(120%);
+    -webkit-backdrop-filter: blur(18px) saturate(120%);
+  }
+
+  .glass-alt-header {
+    background: linear-gradient(180deg, rgba(14,18,30,0.6), rgba(14,18,30,0.5));
+    backdrop-filter: blur(24px) saturate(120%);
+    -webkit-backdrop-filter: blur(24px) saturate(120%);
+    border-bottom: 1px solid rgba(180,200,255,0.14);
+  }
 }
 
 @layer base {

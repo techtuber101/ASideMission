@@ -368,6 +368,7 @@ async def websocket_chat(websocket: WebSocket, thread_id: str):
             
             # Process message through orchestrator (instant-or-agentic routing)
             try:
+                print(f"🔄 Starting orchestrator processing for: {message_content}")
                 event_count = 0
                 async for event in orchestrator.process_message(message_content, conversation_history):
                     event_count += 1
@@ -400,6 +401,8 @@ async def websocket_chat(websocket: WebSocket, thread_id: str):
                 
             except Exception as e:
                 print(f"❌ Error in orchestrator: {e}")
+                import traceback
+                traceback.print_exc()
                 await manager.send_message(thread_id, {
                     "type": "error",
                     "content": f"Error processing message: {str(e)}",

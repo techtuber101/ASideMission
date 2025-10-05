@@ -1,10 +1,16 @@
 import { IrisChat } from "@/components/iris-chat";
 
-export default function HomePage() {
+interface ChatPageProps {
+  params: {
+    chatId: string;
+  };
+}
+
+export default function ChatPage({ params }: ChatPageProps) {
   return (
     <div className="flex h-screen flex-col">
       <div className="flex-1 overflow-hidden">
-        <IrisChat />
+        <IrisChat chatId={params.chatId} />
       </div>
     </div>
   );

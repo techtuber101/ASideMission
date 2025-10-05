@@ -410,9 +410,9 @@ export function ComputerView({ toolCalls, isVisible, onToggle }: ComputerViewPro
   return (
     <motion.div
       initial={{ width: 0 }}
-      animate={{ width: 400 }}
+      animate={{ width: 'auto' }}
       exit={{ width: 0 }}
-      className="h-full bg-background border-l flex flex-col"
+      className="h-full bg-background border-l flex flex-col w-[700px] flex-shrink-0"
     >
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-4">

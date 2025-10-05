@@ -218,3 +218,4 @@ export class LocalChatStorage {
 
 // Export singleton instance
 export const localChatStorage = LocalChatStorage.getInstance();
+

@@ -326,3 +326,4 @@ class ShellTool:
 
 # Export the tool instance
 shell_tool = ShellTool()
+

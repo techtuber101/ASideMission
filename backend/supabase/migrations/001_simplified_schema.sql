@@ -4,33 +4,23 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Create threads table
-CREATE TABLE public.threads (
-    thread_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    title TEXT DEFAULT 'New Chat',
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-);
-
--- Create messages table
-CREATE TABLE public.messages (
-    message_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    thread_id UUID NOT NULL REFERENCES public.threads(thread_id) ON DELETE CASCADE,
-    type TEXT NOT NULL DEFAULT 'user',
-    content JSONB NOT NULL DEFAULT '{}',
-    is_llm_message BOOLEAN DEFAULT TRUE,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-);
-
--- Create projects table (optional)
+-- Create projects table first (threads references it)
 CREATE TABLE public.projects (
     project_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL DEFAULT 'New Project',
     description TEXT,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Create threads table
+CREATE TABLE public.threads (
+    thread_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    project_id UUID REFERENCES public.projects(project_id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    title TEXT DEFAULT 'New Chat',
     metadata JSONB DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
