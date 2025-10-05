@@ -1,38 +1,17 @@
 """
-Agent Models - Pydantic types for agentic orchestration events and phases
+Agent Models - Simplified event types for transparent streaming workflow
 """
 
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any, Literal
+from typing import List, Optional, Dict, Any, Literal, Union
 from enum import Enum
 
 
-class PhaseType(str, Enum):
-    PLAN = "plan"
-    ANALYZE = "analyze"
-    EXECUTE = "execute"
-    DELIVER = "deliver"
-
-
-class PhaseStatus(str, Enum):
-    START = "start"
-    END = "end"
-
-
 class EventType(str, Enum):
-    PHASE = "phase"
     TOOL_CALL = "tool_call"
     TOOL_RESULT = "tool_result"
     TEXT = "text"
-    DELIVER = "deliver"
     ERROR = "error"
-
-
-class PhaseEvent(BaseModel):
-    type: Literal[EventType.PHASE] = EventType.PHASE
-    phase: PhaseType
-    status: PhaseStatus
-    ts: float
 
 
 class ToolCallEvent(BaseModel):
@@ -59,19 +38,6 @@ class TextEvent(BaseModel):
     ts: float
 
 
-class Artifact(BaseModel):
-    path: str
-    size: int
-    type: str = "file"
-
-
-class DeliverEvent(BaseModel):
-    type: Literal[EventType.DELIVER] = EventType.DELIVER
-    artifacts: List[Artifact]
-    summary: str
-    ts: float
-
-
 class ErrorEvent(BaseModel):
     type: Literal[EventType.ERROR] = EventType.ERROR
     content: str
@@ -79,14 +45,14 @@ class ErrorEvent(BaseModel):
 
 
 # Union type for all events
-AgentEvent = PhaseEvent | ToolCallEvent | ToolResultEvent | TextEvent | DeliverEvent | ErrorEvent
+AgentEvent = Union[ToolCallEvent, ToolResultEvent, TextEvent, ErrorEvent]
 
 
 class OrchestratorConfig(BaseModel):
     max_tool_hops: int = 3
     max_execution_time: float = 12.0  # seconds
     enable_verification: bool = False
-    agent_mode: str = "P1_5"
+    agent_mode: str = "transparent"
 
 
 class ToolCall(BaseModel):

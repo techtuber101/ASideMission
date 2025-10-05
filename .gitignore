@@ -115,5 +115,4 @@ build/
 dist/
 
 # Reference directories
-Reference/
 vercel-chatbot-reference/

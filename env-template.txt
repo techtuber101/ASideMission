@@ -1,0 +1,61 @@
+# Iris Environment Variables
+# Copy this file to .env and fill in your actual values
+
+# ===========================================
+# SUPABASE CONFIGURATION
+# ===========================================
+# Get these from your Supabase project dashboard
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_ANON_KEY=your-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+
+# ===========================================
+# GEMINI API CONFIGURATION
+# ===========================================
+# Get this from Google AI Studio
+GOOGLE_API_KEY=your-gemini-api-key-here
+
+# ===========================================
+# DAYTONA SANDBOX CONFIGURATION
+# ===========================================
+# Your Daytona workspace configuration
+DAYTONA_WORKSPACE_ID=your-workspace-id
+DAYTONA_API_URL=https://api.daytona.io
+DAYTONA_API_KEY=your-daytona-api-key
+
+# ===========================================
+# REDIS CONFIGURATION (for Dramatiq)
+# ===========================================
+# For background task processing
+REDIS_URL=redis://localhost:6379
+
+# ===========================================
+# APPLICATION CONFIGURATION
+# ===========================================
+# Backend server configuration
+BACKEND_HOST=0.0.0.0
+BACKEND_PORT=8000
+
+# Frontend URL (for CORS)
+FRONTEND_URL=http://localhost:3000
+
+# ===========================================
+# OPTIONAL CONFIGURATION
+# ===========================================
+# Environment (development/production)
+NODE_ENV=development
+
+# Logging level
+LOG_LEVEL=INFO
+
+# ===========================================
+# WEB SEARCH CONFIGURATION
+# ===========================================
+# For web search tool (optional)
+TAVILY_API_KEY=your-tavily-api-key-here
+
+# ===========================================
+# BROWSER AUTOMATION CONFIGURATION
+# ===========================================
+# For browser tool (optional)
+PLAYWRIGHT_BROWSER_WS_ENDPOINT=ws://localhost:9222

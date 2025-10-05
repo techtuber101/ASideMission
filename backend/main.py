@@ -9,7 +9,11 @@ import time
 import json
 import asyncio
 import uuid
+from datetime import datetime, timezone
 from dotenv import load_dotenv
+
+# Load environment variables from root directory
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 # Import our services
 from services.gemini_client import get_gemini_client
@@ -17,9 +21,8 @@ from services.tool_executor import get_tool_executor
 from services.orchestrator import get_orchestrator
 from utils.redis_client import get_redis_client, JobStatus
 from tools import get_tool_schemas
-
-# Load environment variables
-load_dotenv()
+from auth import get_current_user
+from threads import router as threads_router
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -31,11 +34,14 @@ app = FastAPI(
 # CORS middleware for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3003", "http://localhost:3004", "http://localhost:8081"],
+    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:3003", "http://localhost:3004", "http://localhost:8081"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(threads_router, prefix="/api", tags=["threads"])
 
 # Pydantic models
 class Message(BaseModel):
@@ -245,7 +251,7 @@ async def chat_stream(message: Message):
     
     return StreamingResponse(
         generate_stream(),
-        media_type="text/plain",
+        media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
@@ -260,18 +266,81 @@ async def websocket_chat(websocket: WebSocket, thread_id: str):
     await manager.connect(websocket, thread_id)
     
     try:
+        # Get auth token from query params (optional)
+        token = websocket.query_params.get("token")
+        user_id = None
+        
+        # Only verify authentication if token is provided
+        if token:
+            try:
+                from utils.auth_utils import verify_and_get_user_id_from_jwt
+                from fastapi import Request
+                import jwt
+                
+                # Create a mock request for auth verification
+                class MockRequest:
+                    def __init__(self, token):
+                        self.headers = {"Authorization": f"Bearer {token}"}
+                
+                mock_request = MockRequest(token)
+                user_id = await verify_and_get_user_id_from_jwt(mock_request)
+                
+                # Verify user has access to thread
+                from services.supabase_client import get_db_connection
+                from utils.auth_utils import verify_and_authorize_thread_access
+                db = get_db_connection()
+                client = await db.client
+                await verify_and_authorize_thread_access(client, thread_id, user_id)
+                
+            except Exception as e:
+                await websocket.close(code=1008, reason=f"Authentication failed: {str(e)}")
+                return
+        else:
+            # No authentication - allow anonymous access
+            print(f"🔓 Anonymous WebSocket connection for thread: {thread_id}")
+            user_id = None
+        
         orchestrator = get_orchestrator()
         gemini_client = get_gemini_client()
         
-        # Get conversation history from Redis (placeholder for P1.5)
+        # Get conversation history from database (only if authenticated)
         conversation_history = []
+        if user_id:
+            try:
+                messages_result = await client.table('messages').select('*').eq('thread_id', thread_id).order('created_at', desc=False).execute()
+                for msg in messages_result.data or []:
+                    content = msg.get('content', {})
+                    if isinstance(content, dict):
+                        conversation_history.append({
+                            "role": content.get("role", "user"),
+                            "content": content.get("content", ""),
+                            "timestamp": msg.get("created_at", "")
+                        })
+            except Exception as e:
+                print(f"Error loading conversation history: {e}")
+        else:
+            print(f"🔓 Anonymous user - no conversation history loaded")
         
         while True:
             # Receive user message
             data = await websocket.receive_json()
             message_content = data.get("content", "")
             
+            print(f"🔍 Received WebSocket message: {data}")
+            
+            # Handle file operations (background, no tool calls)
+            if data.get("type") == "file_upload":
+                await handle_file_upload(websocket, data, thread_id)
+                continue
+            elif data.get("type") == "file_download":
+                await handle_file_download(websocket, data, thread_id)
+                continue
+            elif data.get("type") == "list_files":
+                await handle_list_files(websocket, data, thread_id)
+                continue
+            
             if not message_content:
+                print("❌ Empty message content, skipping")
                 continue
             
             # Send acknowledgment
@@ -279,18 +348,63 @@ async def websocket_chat(websocket: WebSocket, thread_id: str):
                 "type": "ack",
                 "timestamp": time.time()
             })
+            print(f"✅ Sent acknowledgment for: {message_content}")
+            
+            # Save user message to database (only if authenticated)
+            if user_id:
+                try:
+                    await client.table('messages').insert({
+                        "message_id": str(uuid.uuid4()),
+                        "thread_id": thread_id,
+                        "type": "user",
+                        "is_llm_message": True,
+                        "content": {"role": "user", "content": message_content},
+                        "created_at": datetime.now(timezone.utc).isoformat()
+                    }).execute()
+                except Exception as e:
+                    print(f"Error saving user message: {e}")
+            else:
+                print(f"🔓 Anonymous user - message not saved to database")
             
             # Process message through orchestrator (instant-or-agentic routing)
-            async for event in orchestrator.process_message(message_content, conversation_history):
-                await manager.send_message(thread_id, event)
+            try:
+                event_count = 0
+                async for event in orchestrator.process_message(message_content, conversation_history):
+                    event_count += 1
+                    print(f"📤 Sending event #{event_count}: {event}")
+                    await manager.send_message(thread_id, event)
+                    
+                    # Update conversation history for next turn
+                    if event["type"] == "text":
+                        conversation_history.append({
+                            "role": "assistant",
+                            "content": event["content"],
+                            "timestamp": event["ts"]
+                        })
+                        
+                        # Save assistant message to database (only if authenticated)
+                        if user_id:
+                            try:
+                                await client.table('messages').insert({
+                                    "message_id": str(uuid.uuid4()),
+                                    "thread_id": thread_id,
+                                    "type": "assistant",
+                                    "is_llm_message": True,
+                                    "content": {"role": "assistant", "content": event["content"]},
+                                    "created_at": datetime.now(timezone.utc).isoformat()
+                                }).execute()
+                            except Exception as e:
+                                print(f"Error saving assistant message: {e}")
                 
-                # Update conversation history for next turn
-                if event["type"] == "text":
-                    conversation_history.append({
-                        "role": "assistant",
-                        "content": event["content"],
-                        "timestamp": event["ts"]
-                    })
+                print(f"✅ Processed {event_count} events for message: {message_content}")
+                
+            except Exception as e:
+                print(f"❌ Error in orchestrator: {e}")
+                await manager.send_message(thread_id, {
+                    "type": "error",
+                    "content": f"Error processing message: {str(e)}",
+                    "timestamp": time.time()
+                })
             
             # Add user message to history
             conversation_history.append({
@@ -353,6 +467,135 @@ async def create_thread():
     thread_id = str(uuid.uuid4())
     # TODO: Store thread in Redis
     return {"thread_id": thread_id}
+
+# File operation handlers (background operations, no tool calls)
+async def handle_file_upload(websocket: WebSocket, data: dict, thread_id: str):
+    """Handle file upload to sandbox - background operation"""
+    try:
+        file_name = data.get("file_name")
+        file_content = data.get("file_content")  # Base64 encoded
+        file_size = data.get("file_size")
+        file_type = data.get("file_type")
+        
+        if not file_name or not file_content:
+            await manager.send_message(thread_id, {
+                "type": "file_upload_error",
+                "error": "Missing file name or content"
+            })
+            return
+        
+        # Decode base64 content
+        import base64
+        try:
+            decoded_content = base64.b64decode(file_content)
+        except Exception as e:
+            await manager.send_message(thread_id, {
+                "type": "file_upload_error",
+                "error": f"Failed to decode file content: {str(e)}"
+            })
+            return
+        
+        # Upload to sandbox using Daytona client
+        from services.daytona_client import get_daytona_client
+        daytona_client = get_daytona_client()
+        
+        sandbox_path = f"/workspace/{file_name}"
+        result = await daytona_client.write_file(sandbox_path, decoded_content.decode('utf-8', errors='ignore'))
+        
+        if result.get("success"):
+            await manager.send_message(thread_id, {
+                "type": "file_upload_success",
+                "file_name": file_name,
+                "sandbox_path": sandbox_path,
+                "size": len(decoded_content),
+                "type": file_type
+            })
+        else:
+            await manager.send_message(thread_id, {
+                "type": "file_upload_error",
+                "error": f"Failed to upload file: {result.get('error', 'Unknown error')}"
+            })
+            
+    except Exception as e:
+        await manager.send_message(thread_id, {
+            "type": "file_upload_error",
+            "error": f"File upload failed: {str(e)}"
+        })
+
+async def handle_file_download(websocket: WebSocket, data: dict, thread_id: str):
+    """Handle file download from sandbox - background operation"""
+    try:
+        file_path = data.get("file_path")
+        
+        if not file_path:
+            await manager.send_message(thread_id, {
+                "type": "file_download_error",
+                "error": "Missing file path"
+            })
+            return
+        
+        # Download from sandbox using Daytona client
+        from services.daytona_client import get_daytona_client
+        daytona_client = get_daytona_client()
+        
+        result = await daytona_client.read_file(file_path)
+        
+        if result.get("success"):
+            content = result.get("content", "")
+            
+            # Encode content as base64 for transfer
+            import base64
+            encoded_content = base64.b64encode(content.encode('utf-8')).decode('utf-8')
+            
+            await manager.send_message(thread_id, {
+                "type": "file_download_success",
+                "file_path": file_path,
+                "file_name": os.path.basename(file_path),
+                "content": encoded_content,
+                "size": len(content)
+            })
+        else:
+            await manager.send_message(thread_id, {
+                "type": "file_download_error",
+                "error": f"Failed to download file: {result.get('error', 'Unknown error')}"
+            })
+            
+    except Exception as e:
+        await manager.send_message(thread_id, {
+            "type": "file_download_error",
+            "error": f"File download failed: {str(e)}"
+        })
+
+async def handle_list_files(websocket: WebSocket, data: dict, thread_id: str):
+    """Handle listing files in sandbox - background operation"""
+    try:
+        folder_path = data.get("folder_path", "/workspace")
+        
+        # List files using Daytona client
+        from services.daytona_client import get_daytona_client
+        daytona_client = get_daytona_client()
+        
+        result = await daytona_client.list_files(folder_path)
+        
+        if result.get("success"):
+            files = result.get("files", [])
+            await manager.send_message(thread_id, {
+                "type": "list_files_success",
+                "folder_path": folder_path,
+                "files": files,
+                "count": len(files)
+            })
+        else:
+            await manager.send_message(thread_id, {
+                "type": "list_files_error",
+                "error": f"Failed to list files: {result.get('error', 'Unknown error')}"
+            })
+            
+    except Exception as e:
+        await manager.send_message(thread_id, {
+            "type": "list_files_error",
+            "error": f"List files failed: {str(e)}"
+        })
 
 if __name__ == "__main__":
     import uvicorn

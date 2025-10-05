@@ -29,7 +29,8 @@ services:
       - PARALLEL_TOOLS=${PARALLEL_TOOLS:-true}
       - WEBSOCKET_ENABLED=${WEBSOCKET_ENABLED:-true}
       - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_KEY=${SUPABASE_KEY}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - DAYTONA_API_KEY=${DAYTONA_API_KEY}
@@ -51,21 +52,22 @@ services:
         wait
       "
 
-  # Frontend - Sleek Dashboard (commented out - no Dockerfile)
-  # frontend:
-  #   build: ./frontend
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     - NEXT_PUBLIC_API_URL=http://localhost:8000
-  #     - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
-  #     - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_KEY}
-  #   depends_on:
-  #     - backend
-  #   volumes:
-  #     - ./frontend:/app
-  #     - /app/node_modules
-  #   command: npm run dev
+  # Frontend - Sleek Dashboard
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8000
+      - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev
 
 volumes:
   redis_data:

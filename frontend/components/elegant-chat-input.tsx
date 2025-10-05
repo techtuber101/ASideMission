@@ -10,6 +10,7 @@ interface ElegantChatInputProps {
   onChange: (value: string) => void;
   onSend: () => void;
   onKeyPress: (e: React.KeyboardEvent) => void;
+  onFileUpload?: () => void;
   disabled?: boolean;
 }
 
@@ -17,7 +18,8 @@ export function ElegantChatInput({
   value, 
   onChange, 
   onSend, 
-  onKeyPress, 
+  onKeyPress,
+  onFileUpload,
   disabled = false 
 }: ElegantChatInputProps) {
   const [isFocused, setIsFocused] = useState(false);
@@ -41,6 +43,7 @@ export function ElegantChatInput({
           <button
             className="flex items-center gap-1 px-2 py-1 text-white/70 hover:text-white hover:bg-white/5 rounded-md transition-all duration-200"
             disabled={disabled}
+            onClick={onFileUpload}
           >
             <PaperclipIcon className="h-3 w-3" />
             <span className="text-xs">Attach</span>

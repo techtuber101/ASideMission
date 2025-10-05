@@ -10,6 +10,11 @@ import json
 from typing import AsyncGenerator, Dict, Any, List, Optional
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
+from dotenv import load_dotenv
+
+# Load environment variables
+# Load environment variables from root directory
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '.env'))
 
 
 class GeminiClient:
@@ -272,6 +277,73 @@ Remember: You are an autonomous agent. Use your tools proactively to provide the
                 "timestamp": time.time()
             }
     
+    async def chat_simple_streaming(
+        self, 
+        message: str, 
+        thread_history: Optional[List[Dict[str, str]]] = None
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        """Simple streaming chat for real-time token responses"""
+        try:
+            # Build conversation context for Gemini with system instructions
+            messages = []
+            
+            # Add system instructions as the first message
+            messages.append({"role": "user", "parts": [{"text": self.system_instructions}]})
+            messages.append({"role": "model", "parts": [{"text": "I understand. I am Iris, an autonomous AI agent with access to powerful tools. I will use them proactively to provide comprehensive assistance and solve problems systematically."}]})
+            
+            # Add thread history
+            if thread_history:
+                for msg in thread_history:
+                    content = msg.get("content", "").strip()
+                    if content:  # Only add non-empty messages
+                        if msg["role"] == "user":
+                            messages.append({"role": "user", "parts": [{"text": content}]})
+                        elif msg["role"] == "assistant":
+                            messages.append({"role": "model", "parts": [{"text": content}]})
+            
+            # Add current message
+            messages.append({"role": "user", "parts": [{"text": message}]})
+            
+            # Generate streaming response
+            generation_config = {
+                "temperature": 0.7,
+                "top_p": 0.8,
+                "top_k": 40,
+                "max_output_tokens": 8192,
+                "candidate_count": 1,
+                "stop_sequences": []
+            }
+            
+            safety_settings = {
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+            }
+            
+            response = self.model.generate_content(
+                messages,
+                stream=True,
+                generation_config=generation_config,
+                safety_settings=safety_settings
+            )
+            
+            # Stream the response tokens
+            for chunk in response:
+                if chunk.text:
+                    yield {
+                        "type": "text",
+                        "content": chunk.text,
+                        "timestamp": time.time()
+                    }
+                    
+        except Exception as e:
+            yield {
+                "type": "error",
+                "content": f"Error in streaming chat: {str(e)}",
+                "timestamp": time.time()
+            }
+
     async def chat_simple(
         self, 
         message: str, 

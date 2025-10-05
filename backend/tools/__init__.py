@@ -6,6 +6,9 @@ import asyncio
 import time
 import os
 
+# Import the new tools
+from .task_list_tool import task_list_tool
+
 class BaseTool(ABC):
     """Base class for all Iris tools - optimized for instant execution"""
     
@@ -467,14 +470,20 @@ class ComputerTool(BaseTool):
                 "execution_time_ms": round((time.time() - start_time) * 1000, 2)
             }
 
-# Tool Registry - P1.5 Limited to web_search and file only
+# Tool Registry - Updated with core tools
 TOOLS = {
     "web_search": WebSearchTool(),
-    "file": FileTool()
+    "file": FileTool(),
+    "shell": ShellTool(),
+    "task_list": task_list_tool,
+    "web_scrape": WebScrapeTool(),
+    "browser": BrowserTool(),
+    "code": CodeTool(),
+    "computer": ComputerTool()
 }
 
 def get_tool_schemas() -> list:
-    """Get P1.5 tool schemas for LLM function calling (web_search + file only)"""
+    """Get tool schemas for LLM function calling"""
     return [tool.get_schema() for tool in TOOLS.values()]
 
 async def execute_tool(tool_name: str, **kwargs) -> Dict[str, Any]:
