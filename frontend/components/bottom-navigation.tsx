@@ -21,6 +21,7 @@ interface BottomNavigationProps {
   onTabClose: (tabId: string) => void;
   onNewTab: () => void;
   onHistoryClick: () => void;
+  tabsContainerRef?: React.RefObject<HTMLDivElement>;
 }
 
 export function BottomNavigation({ 
@@ -28,7 +29,8 @@ export function BottomNavigation({
   onTabClick, 
   onTabClose, 
   onNewTab, 
-  onHistoryClick 
+  onHistoryClick,
+  tabsContainerRef
 }: BottomNavigationProps) {
   const router = useRouter();
   return (
@@ -40,7 +42,11 @@ export function BottomNavigation({
 
       {/* Center: Scrollable Chat Tabs */}
       <div className="flex-1 mx-4 overflow-hidden">
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+        <div 
+          ref={tabsContainerRef}
+          className="flex items-center gap-2 overflow-x-auto scrollbar-hide"
+          style={{ scrollBehavior: 'smooth' }}
+        >
           {tabs.map((tab) => (
             <motion.div
               key={tab.id}
@@ -51,10 +57,7 @@ export function BottomNavigation({
                   : "text-white/60 hover:text-white/90"
               )}
               title={tab.title}
-              onClick={() => {
-                onTabClick(tab.id);
-                router.push(`/chat/${tab.id}`);
-              }}
+              onClick={() => onTabClick(tab.id)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -62,21 +65,23 @@ export function BottomNavigation({
                 tab.isActive ? "text-white/90" : "text-white/50"
               )} />
               <span className="truncate">{tab.title}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-5 w-5 hover:bg-destructive/10 hover:text-destructive flex-shrink-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onTabClose(tab.id);
-                }}
-              >
-                <X className="h-3 w-3" />
-              </Button>
+              {!(tab as any).isNew && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 hover:bg-destructive/10 hover:text-destructive flex-shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTabClose(tab.id);
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
             </motion.div>
           ))}
           
-          {/* New Tab Button */}
+          {/* New Chat Button - Always after the tabs */}
           <Button
             variant="ghost"
             size="icon"

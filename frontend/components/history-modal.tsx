@@ -23,61 +23,67 @@ interface ChatHistoryItem {
   date: string;
 }
 
+interface Chat {
+  id: string;
+  title: string;
+  messages: Array<{
+    id: string;
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    timestamp: number;
+  }>;
+  createdAt: number;
+  updatedAt: number;
+  isLocal?: boolean;
+}
+
 interface HistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectChat: (chatId: string) => void;
+  chats?: Chat[];
 }
 
-export function HistoryModal({ isOpen, onClose, onSelectChat }: HistoryModalProps) {
+export function HistoryModal({ isOpen, onClose, onSelectChat, chats = [] }: HistoryModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
 
-  // Mock chat history data
-  const chatHistory: ChatHistoryItem[] = [
-    {
-      id: "1",
-      title: "Welcome to Iris",
-      preview: "Hello! I'm Iris, your AI assistant. How can I help you today?",
-      timestamp: "2:30 PM",
-      date: "Today"
-    },
-    {
-      id: "2", 
-      title: "Getting Started",
-      preview: "Let me help you get started with using Iris effectively...",
-      timestamp: "1:45 PM",
-      date: "Today"
-    },
-    {
-      id: "3",
-      title: "Code Review Help",
-      preview: "Can you review this React component and suggest improvements?",
-      timestamp: "11:20 AM",
-      date: "Today"
-    },
-    {
-      id: "4",
-      title: "Project Planning",
-      preview: "I need help planning a new web application project...",
-      timestamp: "9:15 PM",
-      date: "Yesterday"
-    },
-    {
-      id: "5",
-      title: "Debugging Issue",
-      preview: "I'm having trouble with this TypeScript error...",
-      timestamp: "7:30 PM",
-      date: "Yesterday"
-    },
-    {
-      id: "6",
-      title: "Design Discussion",
-      preview: "What do you think about this UI design approach?",
-      timestamp: "4:45 PM",
-      date: "2 days ago"
-    }
-  ];
+  // Convert chats to history items
+  const chatHistory: ChatHistoryItem[] = chats
+    .filter(chat => chat.messages.length > 0) // Only show chats with messages
+    .map(chat => {
+      const firstUserMessage = chat.messages.find(msg => msg.role === 'user');
+      const preview = firstUserMessage?.content || 'No messages yet';
+      const lastMessage = chat.messages[chat.messages.length - 1];
+      const lastUpdate = new Date(chat.updatedAt);
+      const now = new Date();
+      const diffInHours = (now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60);
+      
+      let date: string;
+      if (diffInHours < 24) {
+        date = "Today";
+      } else if (diffInHours < 48) {
+        date = "Yesterday";
+      } else if (diffInHours < 168) { // 7 days
+        date = `${Math.floor(diffInHours / 24)} days ago`;
+      } else {
+        date = lastUpdate.toLocaleDateString();
+      }
+
+      return {
+        id: chat.id,
+        title: chat.title,
+        preview: preview.length > 100 ? preview.substring(0, 100) + '...' : preview,
+        timestamp: lastUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        date
+      };
+    })
+    .sort((a, b) => {
+      // Sort by most recent first
+      const chatA = chats.find(c => c.id === a.id);
+      const chatB = chats.find(c => c.id === b.id);
+      return (chatB?.updatedAt || 0) - (chatA?.updatedAt || 0);
+    });
 
   const filteredHistory = chatHistory.filter(chat => 
     chat.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

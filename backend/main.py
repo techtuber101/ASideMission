@@ -270,6 +270,9 @@ async def websocket_chat(websocket: WebSocket, thread_id: str):
         token = websocket.query_params.get("token")
         user_id = None
         
+        print(f"🔍 WebSocket query params: {dict(websocket.query_params)}")
+        print(f"🔍 WebSocket token received: {token[:50] if token else 'None'}...")
+        
         # Only verify authentication if token is provided
         if token:
             try:
@@ -298,6 +301,8 @@ async def websocket_chat(websocket: WebSocket, thread_id: str):
                 await verify_and_authorize_thread_access(client, thread_id, user_id)
                 
             except Exception as e:
+                print(f"❌ WebSocket authentication error: {str(e)}")
+                print(f"❌ Token that failed: {token[:100] if token else 'None'}...")
                 await websocket.close(code=1008, reason=f"Authentication failed: {str(e)}")
                 return
         else:
