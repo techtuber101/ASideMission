@@ -34,39 +34,39 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
         components={{
           // Headings with beautiful styling - BIG, BOLD, VISIBLE
           h1: ({ children }) => (
-            <h1 className="text-4xl font-bold text-white mb-6 mt-8 pb-4 border-b-2 border-white/30 bg-gradient-to-r from-blue-500/10 to-purple-500/10 px-4 py-3 rounded-lg shadow-lg">
+            <h1 className="text-4xl font-bold text-foreground mb-6 mt-8 pb-4 border-b-2 border-white/30 bg-gradient-to-r from-blue-500/10 to-purple-500/10 px-4 py-3 rounded-lg shadow-lg">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-3xl font-bold text-white mb-5 mt-7 pb-3 border-b border-white/20 bg-gradient-to-r from-blue-500/5 to-purple-500/5 px-3 py-2 rounded">
+            <h2 className="text-3xl font-bold text-foreground mb-5 mt-7 pb-3 border-b border-white/20 bg-gradient-to-r from-blue-500/5 to-purple-500/5 px-3 py-2 rounded">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-2xl font-semibold text-white mb-4 mt-6 pb-2 border-b border-white/10">
+            <h3 className="text-2xl font-semibold text-foreground mb-4 mt-6 pb-2 border-b border-white/10">
               {children}
             </h3>
           ),
           h4: ({ children }) => (
-            <h4 className="text-xl font-semibold text-white mb-3 mt-5 text-blue-300">
+            <h4 className="text-xl font-semibold text-foreground mb-3 mt-5 text-blue-300">
               {children}
             </h4>
           ),
           h5: ({ children }) => (
-            <h5 className="text-lg font-semibold text-white mb-2 mt-4 text-blue-200">
+            <h5 className="text-lg font-semibold text-foreground mb-2 mt-4 text-blue-200">
               {children}
             </h5>
           ),
           h6: ({ children }) => (
-            <h6 className="text-base font-semibold text-white/90 mb-2 mt-3 text-blue-100">
+            <h6 className="text-base font-semibold text-foreground/90 mb-2 mt-3 text-blue-100">
               {children}
             </h6>
           ),
 
           // Paragraphs
           p: ({ children }) => (
-            <p className="text-white/90 leading-relaxed mb-4 text-base">
+            <p className="text-foreground/90 leading-relaxed mb-4 text-base">
               {children}
             </p>
           ),
@@ -122,12 +122,12 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
 
           // Lists
           ul: ({ children }) => (
-            <ul className="list-disc list-inside text-white/90 mb-4 space-y-2 ml-4">
+            <ul className="list-disc list-inside text-foreground/90 mb-4 space-y-2 ml-4">
               {children}
             </ul>
           ),
           ol: ({ children }) => (
-            <ol className="list-decimal list-inside text-white/90 mb-4 space-y-2 ml-4">
+            <ol className="list-decimal list-inside text-foreground/90 mb-4 space-y-2 ml-4">
               {children}
             </ol>
           ),
@@ -140,7 +140,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
           // Blockquotes
           blockquote: ({ children }) => (
             <blockquote className="border-l-4 border-blue-500 pl-6 py-4 my-6 bg-gradient-to-r from-blue-500/10 to-transparent rounded-r-lg shadow-lg">
-              <div className="text-white/90 italic text-lg">
+              <div className="text-foreground/90 italic text-lg">
                 {children}
               </div>
             </blockquote>
@@ -170,12 +170,12 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
             </tr>
           ),
           th: ({ children }) => (
-            <th className="px-6 py-4 text-left text-white font-bold border-r border-white/10 last:border-r-0">
+            <th className="px-6 py-4 text-left text-foreground font-bold border-r border-white/10 last:border-r-0">
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="px-6 py-4 text-white/90 border-r border-white/10 last:border-r-0">
+            <td className="px-6 py-4 text-foreground/90 border-r border-white/10 last:border-r-0">
               {children}
             </td>
           ),
@@ -199,21 +199,21 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
 
           // Strong/Bold
           strong: ({ children }) => (
-            <strong className="font-bold text-white">
+            <strong className="font-bold text-foreground">
               {children}
             </strong>
           ),
 
           // Emphasis/Italic
           em: ({ children }) => (
-            <em className="italic text-white/95">
+            <em className="italic text-foreground/95">
               {children}
             </em>
           ),
 
           // Strikethrough
           del: ({ children }) => (
-            <del className="line-through text-white/60">
+            <del className="line-through text-foreground/60">
               {children}
             </del>
           ),
@@ -236,7 +236,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
 
           // Strikethrough (GitHub Flavored Markdown)
           s: ({ children }) => (
-            <s className="line-through text-white/60">
+            <s className="line-through text-foreground/60">
               {children}
             </s>
           ),

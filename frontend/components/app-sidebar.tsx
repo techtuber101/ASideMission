@@ -29,7 +29,7 @@ export function AppSidebar() {
               <div className="glass-card flex h-10 w-10 items-center justify-center rounded-lg">
                 <BotIcon className="h-5 w-5 text-primary" />
               </div>
-              <span className="cursor-pointer glass-button rounded-md px-2 font-medium text-lg hover:bg-accent">
+              <span className="cursor-pointer glass-button rounded-md px-2 font-medium text-lg hover:bg-accent text-foreground">
                 Iris
               </span>
             </Link>
@@ -39,7 +39,7 @@ export function AppSidebar() {
       <SidebarContent>
         <div className="flex flex-col items-center justify-center h-full p-4">
           <div className="glass-card text-center p-6 rounded-xl">
-            <div className="text-sm text-muted-foreground">AI Assistant</div>
+            <div className="text-sm text-foreground">AI Assistant</div>
             <div className="text-xs mt-1 text-muted-foreground">Ready to help</div>
           </div>
         </div>
@@ -48,7 +48,7 @@ export function AppSidebar() {
         <div className="p-2 text-xs text-muted-foreground text-center">
           <div className="glass-card flex items-center justify-center gap-2 p-2 rounded-lg">
             <span className="text-green-600 dark:text-green-400">●</span>
-            <span>Online</span>
+            <span className="text-foreground">Online</span>
           </div>
         </div>
       </SidebarFooter>

@@ -121,7 +121,7 @@ export function HistoryModal({ isOpen, onClose, onSelectChat, chats = [] }: Hist
                     <HistoryIcon className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold">Chat History</h2>
+                    <h2 className="text-xl font-semibold text-foreground">Chat History</h2>
                     <p className="text-sm text-muted-foreground">Browse and search your conversations</p>
                   </div>
                 </div>
@@ -176,7 +176,7 @@ export function HistoryModal({ isOpen, onClose, onSelectChat, chats = [] }: Hist
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <h3 className="font-medium text-sm truncate">{chat.title}</h3>
+                            <h3 className="font-medium text-sm truncate text-foreground">{chat.title}</h3>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <ClockIcon className="h-3 w-3" />
                               <span>{chat.timestamp}</span>
@@ -200,7 +200,7 @@ export function HistoryModal({ isOpen, onClose, onSelectChat, chats = [] }: Hist
                     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted/50 mb-4">
                       <SearchIcon className="h-8 w-8 text-muted-foreground" />
                     </div>
-                    <h3 className="text-lg font-medium mb-2">No conversations found</h3>
+                    <h3 className="text-lg font-medium mb-2 text-foreground">No conversations found</h3>
                     <p className="text-sm text-muted-foreground">
                       Try adjusting your search terms or filters
                     </p>

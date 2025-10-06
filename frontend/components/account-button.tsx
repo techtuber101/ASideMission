@@ -91,7 +91,7 @@ export function AccountButton({}: AccountButtonProps) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="glass-button h-10 w-10 rounded-full p-0 hover:bg-white/10 text-white/70 hover:text-white"
+          className="glass-button h-10 w-10 rounded-full p-0 hover:bg-white/10 text-foreground/70 hover:text-foreground"
         >
           <Avatar className="h-8 w-8">
             <AvatarImage src={getUserAvatar()} alt={getUserDisplayName()} />
@@ -120,31 +120,31 @@ export function AccountButton({}: AccountButtonProps) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium">{getUserDisplayName()}</span>
+                  <span className="text-sm font-medium text-foreground">{getUserDisplayName()}</span>
                   <span className="text-xs text-muted-foreground">{getUserEmail()}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer text-foreground">
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer text-foreground">
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer text-foreground">
                 <CreditCard className="mr-2 h-4 w-4" />
                 <span>Billing</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer text-foreground">
                 <Plug className="mr-2 h-4 w-4" />
                 <span>Integrations</span>
               </DropdownMenuItem>
               <DropdownMenuItem 
-                className="cursor-pointer"
+                className="cursor-pointer text-foreground"
                 onClick={() => setTheme(theme === "light" ? "dark" : "light")}
               >
                 <div className="flex items-center gap-2">
@@ -174,7 +174,7 @@ export function AccountButton({}: AccountButtonProps) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium">Guest User</span>
+                  <span className="text-sm font-medium text-foreground">Guest User</span>
                   <span className="text-xs text-muted-foreground">Not signed in</span>
                 </div>
               </div>
@@ -182,21 +182,21 @@ export function AccountButton({}: AccountButtonProps) {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem 
-                className="cursor-pointer"
+                className="cursor-pointer text-foreground"
                 onClick={handleLogin}
               >
                 <LogIn className="mr-2 h-4 w-4" />
                 <span>Sign In</span>
               </DropdownMenuItem>
               <DropdownMenuItem 
-                className="cursor-pointer"
+                className="cursor-pointer text-foreground"
                 onClick={handleSignUp}
               >
                 <UserPlus className="mr-2 h-4 w-4" />
                 <span>Sign Up</span>
               </DropdownMenuItem>
               <DropdownMenuItem 
-                className="cursor-pointer"
+                className="cursor-pointer text-foreground"
                 onClick={() => setTheme(theme === "light" ? "dark" : "light")}
               >
                 <div className="flex items-center gap-2">

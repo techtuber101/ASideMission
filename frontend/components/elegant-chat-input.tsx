@@ -41,7 +41,7 @@ export function ElegantChatInput({
         <div className="flex items-center gap-2 p-4">
           {/* Attachment Button */}
           <button
-            className="flex items-center gap-1 px-2 py-1 text-white/70 hover:text-white hover:bg-white/5 rounded-md transition-all duration-200"
+            className="flex items-center gap-1 px-2 py-1 text-foreground/70 hover:text-foreground hover:bg-white/5 rounded-md transition-all duration-200"
             disabled={disabled}
             onClick={onFileUpload}
           >
@@ -58,14 +58,14 @@ export function ElegantChatInput({
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             placeholder="Ask Iris anything..."
-            className="flex-1 bg-transparent text-sm placeholder:text-white/40 focus:outline-none text-white min-h-[28px]"
+            className="flex-1 bg-transparent text-sm placeholder:text-foreground/40 focus:outline-none text-foreground min-h-[28px]"
             disabled={disabled}
           />
 
           {/* Action Buttons */}
           <div className="flex items-center gap-1">
             <button
-              className="p-2 hover:bg-white/5 hover:text-white text-white/70 rounded-md transition-all duration-200"
+              className="p-2 hover:bg-white/5 hover:text-foreground text-foreground/70 rounded-md transition-all duration-200"
               disabled={disabled}
             >
               <MicIcon className="h-4 w-4" />
@@ -74,7 +74,7 @@ export function ElegantChatInput({
             <button
               onClick={onSend}
               disabled={!value.trim() || disabled}
-              className="p-2 bg-white/5 text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-all duration-200"
+              className="p-2 bg-white/5 text-foreground hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-all duration-200"
             >
               <ArrowRightIcon className="h-4 w-4" />
             </button>

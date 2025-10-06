@@ -853,13 +853,13 @@ export function IrisChat({ chatId }: IrisChatProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="glass-button h-9 w-9 p-0 text-white/60 hover:text-white/90 transition-all duration-250"
+                    className="glass-button h-9 w-9 p-0 text-foreground/60 hover:text-foreground/90 transition-all duration-250"
                     onClick={() => {/* TODO: Implement share functionality */}}
                   >
                     <ShareIcon className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent className="glass-card text-white border-white/20 bg-black/80 backdrop-blur-sm">
+                <TooltipContent className="glass-card text-foreground border-white/20 bg-black/80 backdrop-blur-sm">
                   <p>Share conversation</p>
                 </TooltipContent>
               </Tooltip>
@@ -869,13 +869,13 @@ export function IrisChat({ chatId }: IrisChatProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="glass-button h-9 w-9 p-0 text-white/60 hover:text-white/90 transition-all duration-250"
+                    className="glass-button h-9 w-9 p-0 text-foreground/60 hover:text-foreground/90 transition-all duration-250"
                     onClick={() => {/* TODO: Implement view files functionality */}}
                   >
                     <FileIcon className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent className="glass-card text-white border-white/20 bg-black/80 backdrop-blur-sm">
+                <TooltipContent className="glass-card text-foreground border-white/20 bg-black/80 backdrop-blur-sm">
                   <p>View files</p>
                 </TooltipContent>
               </Tooltip>
@@ -887,15 +887,15 @@ export function IrisChat({ chatId }: IrisChatProps) {
                     size="sm"
                     className={`glass-button h-9 w-9 p-0 transition-all duration-250 ${
                       showComputerView 
-                        ? "active text-white/90" 
-                        : "text-white/60 hover:text-white/90"
+                        ? "active text-foreground/90" 
+                        : "text-foreground/60 hover:text-foreground/90"
                     }`}
                     onClick={() => setShowComputerView(!showComputerView)}
                   >
                     <MonitorIcon className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent className="glass-card text-white border-white/20 bg-black/80 backdrop-blur-sm">
+                <TooltipContent className="glass-card text-foreground border-white/20 bg-black/80 backdrop-blur-sm">
                   <p>Toggle computer view</p>
                 </TooltipContent>
               </Tooltip>
@@ -924,12 +924,12 @@ export function IrisChat({ chatId }: IrisChatProps) {
                 >
                   <div className="mb-8 flex justify-center">
                     <div className="glass-card flex h-20 w-20 items-center justify-center rounded-full">
-                      <MessageSquareIcon className="h-10 w-10 text-white/70" />
+                      <MessageSquareIcon className="h-10 w-10 text-foreground/70" />
                     </div>
                   </div>
                   <div className="glass-card p-8">
-                    <h2 className="mb-3 text-2xl font-medium text-white">Hello, I'm Iris</h2>
-                    <p className="text-white/70 leading-relaxed">
+                    <h2 className="mb-3 text-2xl font-medium text-foreground">Hello, I'm Iris</h2>
+                    <p className="text-foreground/70 leading-relaxed">
                       I'm your AI assistant. I can help you with various tasks, answer questions, 
                       and provide assistance. What would you like to know?
                     </p>
@@ -956,7 +956,7 @@ export function IrisChat({ chatId }: IrisChatProps) {
                               toolCall.status === 'completed' ? 'bg-green-500' :
                               'bg-red-500'
                             }`}></div>
-                            <span className="text-white/80">
+                            <span className="text-foreground/80">
                               {toolCall.name}
                               {toolCall.cached && <span className="text-xs text-blue-400 ml-1">(cached)</span>}
                             </span>
@@ -1024,9 +1024,9 @@ export function IrisChat({ chatId }: IrisChatProps) {
                           >
                             <div className="glass-message px-6 py-4 bg-blue-500/20">
                               <div className="prose prose-invert max-w-none">
-                                <div className="whitespace-pre-wrap text-white">{message.content}</div>
+                                <div className="whitespace-pre-wrap text-foreground">{message.content}</div>
                                 {message.timestamp && (
-                                  <div className="text-xs text-white/40 mt-1">
+                                  <div className="text-xs text-foreground/40 mt-1">
                                     {new Date(message.timestamp).toLocaleTimeString()}
                                   </div>
                                 )}
@@ -1076,7 +1076,7 @@ export function IrisChat({ chatId }: IrisChatProps) {
                                         toolCall.status === 'completed' ? 'bg-green-500' :
                                         'bg-red-500'
                                       }`} />
-                                      <span className="text-white/80">{toolCall.name}</span>
+                                      <span className="text-foreground/80">{toolCall.name}</span>
                                       {toolCall.cached && (
                                         <span className="text-blue-400 text-xs">cached</span>
                                       )}
@@ -1133,7 +1133,7 @@ export function IrisChat({ chatId }: IrisChatProps) {
                                   {message.content}
                                 </div>
                                 {message.timestamp && (
-                                  <div className="text-xs text-white/40 mt-1">
+                                  <div className="text-xs text-foreground/40 mt-1">
                                     {new Date(message.timestamp).toLocaleTimeString()}
                                   </div>
                                 )}

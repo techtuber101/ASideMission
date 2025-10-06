@@ -6,8 +6,13 @@ import asyncio
 import time
 import os
 
-# Import the new tools
+# Import all tools
 from .task_list_tool import task_list_tool
+from .shell_tool import shell_tool
+from .web_search_tool import web_search_tool
+from .web_scrape_tool import web_scrape_tool
+from .file_operations_tool import file_operations_tool
+from .browser_automation_tool import browser_automation_tool
 
 class BaseTool(ABC):
     """Base class for all Iris tools - optimized for instant execution"""
@@ -470,13 +475,16 @@ class ComputerTool(BaseTool):
                 "execution_time_ms": round((time.time() - start_time) * 1000, 2)
             }
 
-# Tool Registry - Updated with core tools
+# Tool Registry - Updated with all computer tools
 TOOLS = {
-    "web_search": WebSearchTool(),
-    "file": FileTool(),
-    "shell": ShellTool(),
+    "web_search": web_search_tool,
+    "web_scrape": web_scrape_tool,
+    "shell": shell_tool,
+    "file_operations": file_operations_tool,
+    "browser_automation": browser_automation_tool,
     "task_list": task_list_tool,
-    "web_scrape": WebScrapeTool(),
+    # Legacy tools for compatibility
+    "file": FileTool(),
     "browser": BrowserTool(),
     "code": CodeTool(),
     "computer": ComputerTool()
@@ -491,4 +499,17 @@ async def execute_tool(tool_name: str, **kwargs) -> Dict[str, Any]:
     if tool_name not in TOOLS:
         return {"success": False, "error": f"Tool {tool_name} not found"}
     
-    return await TOOLS[tool_name].execute(**kwargs)
+    tool = TOOLS[tool_name]
+    
+    # Handle different tool structures
+    if hasattr(tool, 'execute') and callable(tool.execute):
+        # New tool structure with execute method
+        if len(kwargs) == 1 and 'args' in kwargs:
+            # Called with args parameter
+            return await tool.execute(kwargs['args'])
+        else:
+            # Called with individual parameters
+            return await tool.execute(kwargs)
+    else:
+        # Legacy tool structure
+        return await tool.execute(**kwargs)

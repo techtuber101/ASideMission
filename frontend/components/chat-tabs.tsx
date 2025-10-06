@@ -29,7 +29,7 @@ export function ChatTabs({ tabs, onTabClick, onTabClose, onNewTab }: ChatTabsPro
             className={cn(
               "flex items-center gap-2 px-3 py-2 rounded-t-md text-sm cursor-pointer transition-all duration-200 min-w-0 max-w-48",
               tab.isActive
-                ? "bg-background border-t border-l border-r text-foreground shadow-sm"
+                ? "bg-gradient-to-b from-blue-50/80 to-white/90 border-t border-l border-r border-blue-200/50 text-foreground shadow-sm dark:from-blue-950/80 dark:to-gray-900/90 dark:border-blue-800/50"
                 : "bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground"
             )}
             onClick={() => onTabClick(tab.id)}
@@ -47,7 +47,7 @@ export function ChatTabs({ tabs, onTabClick, onTabClose, onNewTab }: ChatTabsPro
                 onTabClose(tab.id);
               }}
             >
-              <X className="h-3 w-3" />
+              <X className="h-3 w-3 text-foreground/60 hover:text-destructive" />
             </Button>
           </motion.div>
         ))}

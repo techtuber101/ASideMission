@@ -64,6 +64,11 @@ export function ComputerView({ toolCalls, isVisible, onToggle }: ComputerViewPro
         return <Search className="h-5 w-5" />;
       case 'web_scrape':
         return <Eye className="h-5 w-5" />;
+      case 'file_operations':
+        return <FileText className="h-5 w-5" />;
+      case 'browser_automation':
+        return <Globe className="h-5 w-5" />;
+      // Legacy tool names for compatibility
       case 'file':
         return <FileText className="h-5 w-5" />;
       case 'code':
@@ -80,21 +85,26 @@ export function ComputerView({ toolCalls, isVisible, onToggle }: ComputerViewPro
   const getToolDescription = (toolName: string, args: Record<string, any>) => {
     switch (toolName) {
       case 'task_list':
-        return 'Managing task workflow and planning';
+        return `Task management: ${args?.action || 'organizing workflow'}`;
       case 'shell':
-        return `Executing: ${args?.command || 'system command'}`;
+        return `Shell command: ${args?.command || args?.action || 'system operation'}`;
       case 'web_search':
-        return `Searching for: ${args?.query || 'information'}`;
+        return `Web search: ${args?.query || 'finding information'}`;
       case 'web_scrape':
-        return `Analyzing: ${args?.url || 'web content'}`;
+        return `Web scraping: ${args?.urls || args?.url || 'extracting content'}`;
+      case 'file_operations':
+        return `File operation: ${args?.action || 'managing files'}`;
+      case 'browser_automation':
+        return `Browser action: ${args?.action || 'web automation'}`;
+      // Legacy tool names for compatibility
       case 'file':
-        return `File operation: ${args?.action || 'accessing files'}`;
+        return `File operation: ${args?.operation || args?.action || 'accessing files'}`;
       case 'code':
         return `Code execution: ${args?.language || 'programming'}`;
       case 'browser':
         return `Browser action: ${args?.action || 'web interaction'}`;
       case 'computer':
-        return `System access: ${args?.action || 'computer control'}`;
+        return `System access: ${args?.operation || args?.action || 'computer control'}`;
       default:
         return 'Agent activity in progress';
     }
@@ -125,12 +135,12 @@ export function ComputerView({ toolCalls, isVisible, onToggle }: ComputerViewPro
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-white">
+                  <span className="font-semibold text-foreground">
                     {toolCalls[currentIndex].name.replace('_', ' ').toUpperCase()}
                   </span>
                   {getStatusIcon(toolCalls[currentIndex].status)}
                 </div>
-                <p className="text-sm text-white/70 font-normal">
+                <p className="text-sm text-foreground/70 font-normal">
                   {getToolDescription(toolCalls[currentIndex].name, toolCalls[currentIndex].args)}
                 </p>
               </div>
@@ -139,9 +149,9 @@ export function ComputerView({ toolCalls, isVisible, onToggle }: ComputerViewPro
           <CardContent className="space-y-4">
             {toolCalls[currentIndex].args && Object.keys(toolCalls[currentIndex].args).length > 0 && (
               <div>
-                <h4 className="text-sm font-medium mb-2 text-white/70">Parameters</h4>
+                <h4 className="text-sm font-medium mb-2 text-foreground/70">Parameters</h4>
                 <div className="glass-card p-3">
-                  <pre className="text-xs overflow-x-auto text-white/80">
+                  <pre className="text-xs overflow-x-auto text-foreground/80">
                     {JSON.stringify(toolCalls[currentIndex].args, null, 2)}
                   </pre>
                 </div>
@@ -150,7 +160,7 @@ export function ComputerView({ toolCalls, isVisible, onToggle }: ComputerViewPro
 
             {toolCalls[currentIndex].status === 'completed' && toolCalls[currentIndex].result && (
               <div>
-                <h4 className="text-sm font-medium mb-2 text-white/70">Result</h4>
+                <h4 className="text-sm font-medium mb-2 text-foreground/70">Result</h4>
                 <div className="glass-card p-3 border-l-4 border-l-green-400">
                   <pre className="text-xs overflow-x-auto max-h-60 text-green-300">
                     {JSON.stringify(toolCalls[currentIndex].result, null, 2)}
@@ -170,7 +180,7 @@ export function ComputerView({ toolCalls, isVisible, onToggle }: ComputerViewPro
               </div>
             )}
 
-            <div className="flex items-center justify-between text-xs text-white/60 pt-2 border-t border-white/10">
+            <div className="flex items-center justify-between text-xs text-foreground/60 pt-2 border-t border-white/10">
               <div className="flex items-center gap-4">
                 <span>
                   Started: {new Date(toolCalls[currentIndex].startTime).toLocaleTimeString()}
@@ -192,11 +202,11 @@ export function ComputerView({ toolCalls, isVisible, onToggle }: ComputerViewPro
       )}
 
       {toolCalls.length === 0 && (
-        <div className="text-center py-12 text-white/60">
+        <div className="text-center py-12 text-foreground/60">
           <div className="glass-card flex h-16 w-16 items-center justify-center rounded-full mx-auto mb-4">
-            <Brain className="h-8 w-8 text-white/70" />
+            <Brain className="h-8 w-8 text-foreground/70" />
           </div>
-          <h3 className="text-lg font-medium mb-2 text-white">Iris is Ready</h3>
+          <h3 className="text-lg font-medium mb-2 text-foreground">Iris is Ready</h3>
           <p className="text-sm">Agent activities will appear here as they execute</p>
         </div>
       )}
@@ -213,7 +223,7 @@ export function ComputerView({ toolCalls, isVisible, onToggle }: ComputerViewPro
           onClick={onToggle}
           className="glass-button h-8 w-8 p-0"
         >
-          <ChevronLeft className="h-4 w-4 text-white/70" />
+          <ChevronLeft className="h-4 w-4 text-foreground/70" />
         </Button>
       </div>
     );
@@ -246,7 +256,7 @@ export function ComputerView({ toolCalls, isVisible, onToggle }: ComputerViewPro
             onClick={onToggle}
             className="glass-button h-8 w-8 p-0"
           >
-            <ChevronLeft className="h-4 w-4 text-white/70" />
+            <ChevronLeft className="h-4 w-4 text-foreground/70" />
           </Button>
         </div>
       </div>
@@ -278,12 +288,12 @@ export function ComputerView({ toolCalls, isVisible, onToggle }: ComputerViewPro
               disabled={currentIndex === 0 || toolCalls.length === 0}
               className="glass-button h-9 w-9 p-0 disabled:opacity-30"
             >
-              <ChevronLeft className="h-4 w-4 text-white/70" />
+              <ChevronLeft className="h-4 w-4 text-foreground/70" />
             </Button>
             
             {/* Tool Call Counter */}
             <div className="glass-card flex items-center gap-2 px-4 py-2">
-              <span className="text-sm font-medium text-white tabular-nums">
+              <span className="text-sm font-medium text-foreground tabular-nums">
                 {toolCalls.length > 0 ? `${currentIndex + 1} of ${toolCalls.length}` : '0 of 0'}
               </span>
               {toolCalls.length > 0 && (
@@ -298,14 +308,14 @@ export function ComputerView({ toolCalls, isVisible, onToggle }: ComputerViewPro
               disabled={currentIndex === toolCalls.length - 1 || toolCalls.length === 0}
               className="glass-button h-9 w-9 p-0 disabled:opacity-30"
             >
-              <ChevronRight className="h-4 w-4 text-white/70" />
+              <ChevronRight className="h-4 w-4 text-foreground/70" />
             </Button>
           </div>
           
           {/* Timeline Label */}
           <div className="glass-card flex items-center gap-2 px-3 py-2">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span className="text-xs font-medium text-white/70">Agent Timeline</span>
+            <span className="text-xs font-medium text-foreground/70">Agent Timeline</span>
           </div>
         </div>
       </div>

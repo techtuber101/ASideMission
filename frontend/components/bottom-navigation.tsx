@@ -53,8 +53,8 @@ export function BottomNavigation({
               className={cn(
                 "glass-button flex items-center gap-2 px-3 py-2 text-sm cursor-pointer transition-all duration-250 min-w-0 max-w-48 flex-shrink-0",
                 tab.isActive
-                  ? "active text-white/90"
-                  : "text-white/60 hover:text-white/90"
+                  ? "active text-foreground/90"
+                  : "text-foreground/60 hover:text-foreground/90"
               )}
               title={tab.title}
               onClick={() => onTabClick(tab.id)}
@@ -62,7 +62,7 @@ export function BottomNavigation({
               whileTap={{ scale: 0.98 }}
             >
               <MessageSquareIcon className={cn("h-4 w-4 flex-shrink-0",
-                tab.isActive ? "text-white/90" : "text-white/50"
+                tab.isActive ? "text-foreground/90" : "text-foreground/50"
               )} />
               <span className="truncate">{tab.title}</span>
               {!(tab as any).isNew && (
@@ -75,7 +75,7 @@ export function BottomNavigation({
                     onTabClose(tab.id);
                   }}
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-3 w-3 text-foreground/60 hover:text-destructive" />
                 </Button>
               )}
             </motion.div>
@@ -85,7 +85,7 @@ export function BottomNavigation({
           <Button
             variant="ghost"
             size="icon"
-            className="glass-button h-8 w-8 flex-shrink-0 text-white/60 hover:text-white/90 transition-all duration-250"
+            className="glass-button h-8 w-8 flex-shrink-0 text-foreground/60 hover:text-foreground/90 transition-all duration-250"
             onClick={onNewTab}
           >
             <Plus className="h-4 w-4" />
@@ -98,7 +98,7 @@ export function BottomNavigation({
         <Button
           variant="ghost"
           size="icon"
-          className="glass-button h-10 w-10 rounded-full text-white/60 hover:text-white/90 transition-all duration-250"
+          className="glass-button h-10 w-10 rounded-full text-foreground/60 hover:text-foreground/90 transition-all duration-250"
           onClick={onHistoryClick}
         >
           <HistoryIcon className="h-5 w-5" />
