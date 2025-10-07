@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { localChatStorage, LocalChat } from '@/lib/stores/local-chats';
 import { useAuth } from '@/components/AuthProvider';
+import { supabase } from '@/lib/supabase/client';
 
 interface SyncDialogProps {
   isOpen: boolean;
@@ -53,12 +54,19 @@ export function SyncDialog({ isOpen, onClose, onComplete }: SyncDialogProps) {
       ));
 
       try {
+        // Get the current session to access the access token
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session?.access_token) {
+          throw new Error('No access token available');
+        }
+        
         // Call sync endpoint
         const response = await fetch('/api/threads/sync', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${user.access_token}`,
+            'Authorization': `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
             messages: chat.messages.map(msg => ({

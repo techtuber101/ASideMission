@@ -77,9 +77,16 @@ export function useChatManager() {
       if (user) {
         // Load from cloud storage only if user is authenticated
         try {
+          // Get the current session to access the access token
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (!session?.access_token) {
+            throw new Error('No access token available');
+          }
+          
           const response = await fetch(`${API_URL}/api/threads`, {
             headers: {
-              'Authorization': `Bearer ${user.access_token}`,
+              'Authorization': `Bearer ${session.access_token}`,
             },
           });
 
@@ -184,9 +191,16 @@ export function useChatManager() {
     // Load messages from cloud
     if (user && chat.threadId) {
       try {
+        // Get the current session to access the access token
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session?.access_token) {
+          throw new Error('No access token available');
+        }
+        
         const response = await fetch(`${API_URL}/api/threads/${chat.threadId}/messages`, {
           headers: {
-            'Authorization': `Bearer ${user.access_token}`,
+            'Authorization': `Bearer ${session.access_token}`,
           },
         });
 
@@ -227,11 +241,18 @@ export function useChatManager() {
     if (user) {
       // Create cloud chat for authenticated users
       try {
+        // Get the current session to access the access token
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session?.access_token) {
+          throw new Error('No access token available');
+        }
+        
         const response = await fetch(`${API_URL}/api/threads`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': `Bearer ${user.access_token}`,
+            'Authorization': `Bearer ${session.access_token}`,
           },
           body: new URLSearchParams({
             name: title,
@@ -347,11 +368,18 @@ export function useChatManager() {
     } else if (user && chat?.threadId) {
       // Save to cloud storage for authenticated users
       try {
+        // Get the current session to access the access token
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session?.access_token) {
+          throw new Error('No access token available');
+        }
+        
         await fetch(`${API_URL}/api/threads/${chat.threadId}/messages`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${user.access_token}`,
+            'Authorization': `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
             type: message.role === 'user' ? 'user' : 'assistant',
@@ -441,10 +469,17 @@ export function useChatManager() {
         return success;
       } else if (user && chat.threadId) {
         // Only try to delete from cloud if user is authenticated
+        // Get the current session to access the access token
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session?.access_token) {
+          throw new Error('No access token available');
+        }
+        
         const response = await fetch(`${API_URL}/api/threads/${chat.threadId}`, {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${user.access_token}`,
+            'Authorization': `Bearer ${session.access_token}`,
           },
         });
 

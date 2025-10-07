@@ -138,3 +138,4 @@ class WebSearchTool:
 
 # Export the tool instance
 web_search_tool = WebSearchTool()
+

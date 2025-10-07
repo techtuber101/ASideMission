@@ -9,15 +9,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "glass-button bg-white/10 text-white hover:bg-white/15",
+        default: "glass-button text-foreground",
         destructive:
           "glass-button bg-destructive/80 text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "glass-button border border-white/20 bg-white/5 hover:bg-white/10 text-white",
+          "glass-button text-foreground",
         secondary:
-          "glass-button bg-white/10 text-white hover:bg-white/15",
-        ghost: "glass-button hover:bg-white/10 text-white/70 hover:text-white",
-        link: "text-white underline-offset-4 hover:underline",
+          "glass-button text-foreground",
+        ghost: "glass-button text-foreground/70 hover:text-foreground",
+        link: "text-foreground underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",

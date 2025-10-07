@@ -82,8 +82,8 @@ export function AccountButton({}: AccountButtonProps) {
   };
 
   const getUserAvatar = () => {
-    if (!user) return "";
-    return user.user_metadata?.avatar_url || "";
+    if (!user) return null;
+    return user.user_metadata?.avatar_url || null;
   };
 
   return (
@@ -94,7 +94,7 @@ export function AccountButton({}: AccountButtonProps) {
           className="glass-button h-10 w-10 rounded-full p-0 hover:bg-white/10 text-foreground/70 hover:text-foreground"
         >
           <Avatar className="h-8 w-8">
-            <AvatarImage src={getUserAvatar()} alt={getUserDisplayName()} />
+            {getUserAvatar() && <AvatarImage src={getUserAvatar()} alt={getUserDisplayName()} />}
             <AvatarFallback className="text-xs font-medium">
               {getInitials(getUserDisplayName())}
             </AvatarFallback>
@@ -102,9 +102,9 @@ export function AccountButton({}: AccountButtonProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
-        className="glass-card w-56" 
+        className="glass-card w-56 ml-2" 
         align="end" 
-        alignOffset={16}
+        alignOffset={0}
         side="top"
         sideOffset={8}
       >
@@ -114,7 +114,7 @@ export function AccountButton({}: AccountButtonProps) {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-3 px-2 py-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={getUserAvatar()} alt={getUserDisplayName()} />
+                  {getUserAvatar() && <AvatarImage src={getUserAvatar()} alt={getUserDisplayName()} />}
                   <AvatarFallback className="text-xs font-medium">
                     {getInitials(getUserDisplayName())}
                   </AvatarFallback>

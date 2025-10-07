@@ -24,6 +24,7 @@ interface FileItem {
   name: string;
   size: number;
   type: string;
+  file: File; // Store the actual File object
   content?: string;
   status: 'pending' | 'uploading' | 'uploaded' | 'error';
   progress?: number;
@@ -53,6 +54,7 @@ export function FileUpload({ onUpload, onDownload, onListFiles, isVisible, onClo
       name: file.name,
       size: file.size,
       type: file.type,
+      file: file, // Store the actual File object
       status: 'pending'
     }));
 
@@ -88,7 +90,7 @@ export function FileUpload({ onUpload, onDownload, onListFiles, isVisible, onClo
               status: 'uploading'
             });
           };
-          reader.readAsDataURL(file);
+          reader.readAsDataURL(file.file);
         }
       }
 

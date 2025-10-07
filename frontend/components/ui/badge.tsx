@@ -9,12 +9,12 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "glass-card border-transparent bg-white/10 text-white",
+          "glass-card border-transparent text-foreground",
         secondary:
-          "glass-card border-transparent bg-white/10 text-white",
+          "glass-card border-transparent text-foreground",
         destructive:
           "glass-card border-transparent bg-destructive/80 text-destructive-foreground",
-        outline: "glass-card text-white border-white/20",
+        outline: "glass-card text-foreground border-white/20",
       },
     },
     defaultVariants: {

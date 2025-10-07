@@ -491,3 +491,4 @@ class BrowserAutomationTool:
 
 # Export the tool instance
 browser_automation_tool = BrowserAutomationTool()
+

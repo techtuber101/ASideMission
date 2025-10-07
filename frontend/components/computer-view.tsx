@@ -223,7 +223,7 @@ export function ComputerView({ toolCalls, isVisible, onToggle }: ComputerViewPro
           onClick={onToggle}
           className="glass-button h-8 w-8 p-0"
         >
-          <ChevronLeft className="h-4 w-4 text-foreground/70" />
+          <Monitor className="h-4 w-4 text-foreground/70" />
         </Button>
       </div>
     );
@@ -246,7 +246,7 @@ export function ComputerView({ toolCalls, isVisible, onToggle }: ComputerViewPro
               <Brain className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Iris Agent Activity</h2>
+              <h2 className="text-lg font-semibold text-white">Iris's Computer</h2>
               <p className="text-sm text-white/70">Real-time agent execution timeline</p>
             </div>
           </div>

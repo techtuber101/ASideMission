@@ -198,6 +198,10 @@ export function useSimpleChatManager() {
           body: new URLSearchParams({ name: title }),
         });
 
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
         if (response.ok) {
           const data = await response.json();
           newChat = {
@@ -214,6 +218,12 @@ export function useSimpleChatManager() {
         }
       } catch (err) {
         console.error('Error creating cloud chat:', err);
+        
+        // Check if it's a network error (backend not running)
+        if (err instanceof TypeError && err.message === 'Failed to fetch') {
+          console.warn('Backend API not available, falling back to local chat');
+        }
+        
         // Fallback to local chat
         const localChat = localChatStorage.createChat(firstMessage);
         newChat = {

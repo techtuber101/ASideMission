@@ -1,16 +1,18 @@
 import { IrisChat } from "@/components/iris-chat";
 
 interface ChatPageProps {
-  params: {
-    chatId: string;
-  };
+  params: Promise<{
+    threadId: string;
+  }>;
 }
 
-export default function ChatPage({ params }: ChatPageProps) {
+export default async function ChatPage({ params }: ChatPageProps) {
+  const { threadId } = await params;
+  
   return (
     <div className="flex h-screen flex-col">
       <div className="flex-1 overflow-hidden">
-        <IrisChat chatId={params.chatId} />
+        <IrisChat chatId={threadId} />
       </div>
     </div>
   );

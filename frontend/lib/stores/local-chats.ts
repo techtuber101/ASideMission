@@ -20,6 +20,10 @@ export interface LocalChat {
   messages: LocalMessage[];
   createdAt: number;
   updatedAt: number;
+  metadata?: {
+    cloudThreadId?: string;
+    syncedAt?: number;
+  };
 }
 
 const STORAGE_KEY = 'iris_local_chats';

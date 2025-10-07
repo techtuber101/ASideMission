@@ -40,7 +40,13 @@ class GeminiClient:
         self.model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash-exp")
         self.thinking_budget = os.getenv("GEMINI_THINKING_BUDGET", "medium")
         
-        # Initialize model with optimized settings
+        # BLAZING FAST streaming settings - MAXIMUM SPEED
+        self.ultra_fast_streaming = os.getenv("ULTRA_FAST_STREAMING", "true").lower() == "true"
+        self.streaming_mode = os.getenv("STREAMING_MODE", "character")  # character, word, chunk
+        self.streaming_chunk_size = int(os.getenv("STREAMING_CHUNK_SIZE", "10"))  # LARGE batches for speed
+        self.streaming_delay = float(os.getenv("STREAMING_DELAY", "0"))  # ZERO delay - MAXIMUM SPEED
+        
+        # Initialize model with optimized settings for faster streaming
         self.model = genai.GenerativeModel(
             model_name=self.model_name,
             generation_config={
@@ -50,6 +56,9 @@ class GeminiClient:
                 "max_output_tokens": 8192,
                 "candidate_count": 1,
                 "stop_sequences": [],
+                # MAXIMUM SPEED optimizations
+                "response_mime_type": "text/plain",  # Faster than JSON
+                "response_schema": None,  # No schema validation for speed
             },
             safety_settings={
                 HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
@@ -134,7 +143,8 @@ Remember: You are an autonomous agent. Use your tools proactively to provide the
         message: str, 
         tools: List[Dict[str, Any]], 
         thread_history: Optional[List[Dict[str, str]]] = None,
-        thinking_budget: Optional[str] = None
+        thinking_budget: Optional[str] = None,
+        ultra_fast_streaming: Optional[bool] = None
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Stream chat response with function calling support
@@ -147,6 +157,10 @@ Remember: You are an autonomous agent. Use your tools proactively to provide the
         """
         start_time = time.time()
         self.request_count += 1
+        
+        # Use instance setting if not overridden
+        if ultra_fast_streaming is None:
+            ultra_fast_streaming = self.ultra_fast_streaming
         
         try:
             # Build conversation context for Gemini with system instructions
@@ -207,18 +221,44 @@ Remember: You are an autonomous agent. Use your tools proactively to provide the
             loop = asyncio.get_event_loop()
             response_stream = await loop.run_in_executor(None, sync_stream)
             
-            # Stream the response
+            # Stream the response with immediate token yielding
             for chunk in response_stream:
                 chunk_time = time.time()
                 
                 # Handle text content - check for valid parts first
                 try:
                     if hasattr(chunk, 'text') and chunk.text:
-                        yield {
-                            "type": "text",
-                            "content": chunk.text,
-                            "timestamp": chunk_time
-                        }
+                        # Split text into individual tokens/words for faster streaming
+                        text_content = chunk.text
+                        if ultra_fast_streaming and len(text_content) > 3:
+                            # BLAZING FAST mode: stream in LARGE batches for MAXIMUM SPEED
+                            chunk_size = self.streaming_chunk_size  # LARGE chunks for speed
+                            for i in range(0, len(text_content), chunk_size):
+                                char_batch = text_content[i:i + chunk_size]
+                                yield {
+                                    "type": "text",
+                                    "content": char_batch,
+                                    "timestamp": chunk_time  # SAME timestamp - NO delays!
+                                }
+                                # ABSOLUTELY NO delays - MAXIMUM SPEED!
+                        elif len(text_content) > 10:  # Only split longer chunks
+                            # Word-level streaming for balance of speed and readability
+                            words = text_content.split(' ')
+                            for i, word in enumerate(words):
+                                if word.strip():  # Skip empty words
+                                    yield {
+                                        "type": "text",
+                                        "content": word + (' ' if i < len(words) - 1 else ''),
+                                        "timestamp": chunk_time + (i * 0.001)  # Slight delay for ordering
+                                    }
+                                    # NO delays - MAXIMUM SPEED!
+                        else:
+                            # For short chunks, yield immediately - NO processing delays
+                            yield {
+                                "type": "text",
+                                "content": text_content,
+                                "timestamp": chunk_time
+                            }
                 except Exception as text_error:
                     # If text access fails, try to get text from parts
                     try:
@@ -228,11 +268,33 @@ Remember: You are an autonomous agent. Use your tools proactively to provide the
                                 if hasattr(part, 'text') and part.text:
                                     text_content += part.text
                             if text_content:
-                                yield {
-                                    "type": "text",
-                                    "content": text_content,
-                                    "timestamp": chunk_time
-                                }
+                                # Apply same BLAZING FAST streaming to parts
+                                if ultra_fast_streaming and len(text_content) > 3:
+                                    # BLAZING FAST mode: stream in LARGE batches
+                                    chunk_size = self.streaming_chunk_size
+                                    for i in range(0, len(text_content), chunk_size):
+                                        char_batch = text_content[i:i + chunk_size]
+                                        yield {
+                                            "type": "text",
+                                            "content": char_batch,
+                                            "timestamp": chunk_time  # SAME timestamp - NO delays!
+                                        }
+                                        # ABSOLUTELY NO delays - MAXIMUM SPEED!
+                                elif len(text_content) > 10:
+                                    words = text_content.split(' ')
+                                    for i, word in enumerate(words):
+                                        if word.strip():
+                                            yield {
+                                                "type": "text",
+                                                "content": word + (' ' if i < len(words) - 1 else ''),
+                                                "timestamp": chunk_time + (i * 0.001)
+                                            }
+                                else:
+                                    yield {
+                                        "type": "text",
+                                        "content": text_content,
+                                        "timestamp": chunk_time
+                                    }
                     except Exception as parts_error:
                         # Skip text if both methods fail
                         pass
